@@ -1,0 +1,29 @@
+{
+  "log_use_terminal_output": true,
+  "log_rows_min_count": 9000,
+  "log_rows_max_count": 10000,
+  "modules_count": 3,
+  "modules": [
+    {
+      "code": 0,
+      "address": 0,
+      "uniqueName": "uid_module1",
+      "name": "name_module1",
+      "description": "description_module1"
+    },
+    {
+      "code": 0,
+      "address": 0,
+      "uniqueName": "uid_module2",
+      "name": "name_module2",
+      "description": "description_module2"
+    },
+    {
+      "code": 0,
+      "address": 0,
+      "uniqueName": "uid_module3",
+      "name": "name_module3",
+      "description": "description_module3"
+    }
+  ]
+}
