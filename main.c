@@ -44,6 +44,7 @@ int main(int args, char **argv)
         result = EXIT_SUCCESS;
     }    
     
+    System_Stop();
     Log_Write("SERVICE COMPLITION...");
     Log_Write("SERVICE STOPPED");
     return result;

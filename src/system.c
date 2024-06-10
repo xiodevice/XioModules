@@ -7,53 +7,114 @@
 #include "mqtt.h"
 
 static Config config;
-static pthread_t threadIndication;
-static pthread_t threadModules;
-static pthread_t threadMqtt;
+static pthread_t threadIndication;      // Поток индикации
+static pthread_t threadModules;         // Поток для опроса модулей
+static pthread_t threadMqtt;            // Поток для обмена данными с MQTT
 
-static int indicationThreadToRun = 1;
-static int modulesThreadToRun = 1;
-static int mqttThreadToRun = 1;
+static int indicationThreadToRun = 1;   // Флаг для завершения потока индикации
+static int modulesThreadToRun = 1;      // Флаг для завершения потока опроса модулей
+static int mqttThreadToRun = 1;         // Флаг для завершения потока обмена данными с MQTT
 
-/// @brief Поток индикации
-/// @param args Аргументы
-/// @return Результат
-void* ThreadIndication(void* args)
+
+// ***** Инициализация *****
+
+/// @brief Инициализировать данные системы
+/// @return Результат (0 - успех, отрицательное число - ошибка)
+static int System_InitSystemData()
 {
-    for (int i = 0; i < 10000 && indicationThreadToRun; i++)
-    {
-        //printf("Thread 111\n");
-        Log_Write("Thread 111");
-    } 
+    int result = -1;
 
-    return EXIT_SUCCESS;
+    // Логи
+    Log_EnableTerminalOutput(config.log_use_terminal_output);
+    Log_UseRowsCleaning(config.log_rows_min_count, config.log_rows_max_count);
+
+    // TODO: Инициализация данных системы и применение конфигурации к системе
+    
+
+    result = 0;
+    return result;
 }
 
 
-/// @brief Поток для опроса модулей
+/// @brief Инициализировать данные индикации
+/// @return Результат (0 - успех, отрицательное число - ошибка)
+static int System_InitIndicationData()
+{
+    int result = -1;
+
+    // TODO: Инициализация данных индикации
+
+
+    //result = 0;
+    return result;
+}
+
+/// @brief Инициализировать данные модулей
+/// @return Результат (0 - успех, отрицательное число - ошибка)
+static int System_InitModulesData()
+{
+    int result = -1;
+
+    // TODO: Инициализация данных модулей
+    for (int i = 0; i < config.modules_count; i++)
+    {
+        
+    }
+
+    //result = 0;
+    return result;
+}
+
+/// @brief Инициализировать данные Mqtt
+/// @return Результат (0 - успех, отрицательное число - ошибка)
+static int System_InitMqttData()
+{
+    int result = -1;
+
+    // TODO: Инициализация данных Mqtt
+
+
+    //result = 0;
+    return result;
+}
+
+
+/// @brief Обработчик потока индикации
 /// @param args Аргументы
 /// @return Результат
-void* ThreadModulesPolling(void* args)
+static void* System_Indication_ThreadHandler(void* args)
 {
-    for (int i = 0; i < 10000 && modulesThreadToRun; i++)
+    while (indicationThreadToRun)
     {
-        //printf("Thread 222\n");
-        Log_Write("Thread 222");
+        // TODO: Обработчик потока индикации
     }
 
     return EXIT_SUCCESS;
 }
 
-/// @brief Поток для обмена данными с MQTT
+
+/// @brief Обработчик потока опроса модулей
 /// @param args Аргументы
 /// @return Результат
-void* ThreadMqttDataExchange(void* args)
-{
-    for (int i = 0; i < 10000 && mqttThreadToRun; i++)
+static void* System_ModulesPolling_ThreadHandler(void* args)
+{    
+    while (modulesThreadToRun)
     {
-        //printf("Thread 333\n");
-        Log_Write("Thread 333");
+        // TODO: Обработчик потока опроса модулей
     }
+
+    return EXIT_SUCCESS;
+}
+
+/// @brief Обработчик потока обмена данными с Mqtt
+/// @param args Аргументы
+/// @return Результат
+static void* System_MqttDataExchange_ThreadHandler(void* args)
+{
+    while (mqttThreadToRun)
+    {
+        // TODO: Обработчик потока обмена данными с Mqtt
+    }    
     
     return EXIT_SUCCESS;
 }
@@ -120,26 +181,40 @@ int System_Init()
         
     }
 
-    // Отобразить данные конфигурации
+    // Отображение данных конфигурации
     Config_ShowData(&config);
 
-    // XXX: Остановился 02.06.2024 2:50
-    // TODO: Инициализация системы
-
-    // Логи
-    Log_EnableTerminalOutput(config.log_use_terminal_output);
-    Log_UseRowsCleaning(config.log_rows_min_count, config.log_rows_max_count);
-
-
-    // TODO: Инициализация модулей ввода/вывода
-    for (int i = 0; i < config.modules_count; i++)
+    // Инициализация данных системы
+    int res = System_InitSystemData();
+    if (res < 0)
     {
-
+        Log_Write("System: ERROR. Failed to init system data!");
+        return result;
     }
 
+    // Инициализация данных индикации
+    res = System_InitIndicationData();
+    if (res < 0)
+    {
+        Log_Write("System: ERROR. Failed to init indication data!");
+        return result;
+    }
 
-    // TODO: Инициализация MQTT
+    // Инициализация данных модулей
+    res = System_InitModulesData();
+    if (res < 0)
+    {
+        Log_Write("System: ERROR. Failed to init modules data!");
+        return result;
+    }
 
+    // Инициализация данных Mqtt
+    res = System_InitMqttData();
+    if (res < 0)
+    {
+        Log_Write("System: ERROR. Failed to init MQTT data!");
+        return result;
+    }
     
     Log_Write("System: Initialized");
     result = 0;
@@ -153,21 +228,24 @@ int System_Start()
     // TODO: Запуск системы
     Log_Write("System: Starting...");
 
-    int res1 = pthread_create(&threadIndication, NULL, ThreadIndication, NULL);
+    // Создание потока индикации
+    int res1 = pthread_create(&threadIndication, NULL, System_Indication_ThreadHandler, NULL);
     if (res1 != 0)
     {
         Log_Write("System: ERROR. Failed to start Thread_Indication");
         return result;
     }
 
-    int res2 = pthread_create(&threadModules, NULL, ThreadModulesPolling, NULL);
+    // Создание потока опроса модулей
+    int res2 = pthread_create(&threadModules, NULL, System_ModulesPolling_ThreadHandler, NULL);
     if (res2 != 0)
     {
         Log_Write("System: ERROR. Failed to start Thread_Modules");
         return result;
     }
 
-    int res3 = pthread_create(&threadMqtt, NULL, ThreadMqttDataExchange, NULL);
+    // Создание потока обмена данными с Mqtt
+    int res3 = pthread_create(&threadMqtt, NULL, System_MqttDataExchange_ThreadHandler, NULL);
     if (res3 != 0)
     {
         Log_Write("System: ERROR. Failed to start Thread_MQTT");
@@ -176,31 +254,33 @@ int System_Start()
 
     Log_Write("System: Started");
 
-    // Завершение потоков
-    int res11 = pthread_join(threadIndication, NULL);
-    if (res11 != 0)
+    // Ожидание завершения потока индикации
+    res1 = pthread_join(threadIndication, NULL);
+    if (res1 != 0)
     {
-        Log_Write("System: ERROR. Failed to join Thread_Indication with result %d", res11);
+        Log_Write("System: ERROR. Failed to join Thread_Indication with result %d", res1);
         return result;
     }
 
-    int res22 = pthread_join(threadModules, NULL);
-    if (res22 != 0)
+    // Ожидание завершения потока опроса модулей
+    res2 = pthread_join(threadModules, NULL);
+    if (res2 != 0)
     {
-        Log_Write("System: ERROR. Failed to join Thread_Modules with result %d", res22);
+        Log_Write("System: ERROR. Failed to join Thread_Modules with result %d", res2);
         return result;
     }
 
-    int res33 = pthread_join(threadMqtt, NULL);
-    if (res33 != 0)
+    // Ожидание завершения потока обмена данными с Mqtt
+    res3 = pthread_join(threadMqtt, NULL);
+    if (res3 != 0)
     {
-        Log_Write("System: ERROR. Failed to join Thread_MQTT with result %d", res33);
+        Log_Write("System: ERROR. Failed to join Thread_MQTT with result %d", res3);
         return result;
     }
     
     //EINVAL = 22
     //ESRCH = 3
-    //EDEADLK = 36  
+    //EDEADLK = 36
     
     result = 0;
     return result;

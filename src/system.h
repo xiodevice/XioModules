@@ -6,15 +6,15 @@
 #ifndef SYSTEM_H
 #define SYSTEM_H
 
-/// @brief Инициализация системы
+/// @brief Инициализировать систему
 /// @return Результат (Код ошибки)
 int System_Init();
 
-/// @brief Запуск системы
+/// @brief Запустить систему
 /// @return Результат (Код ошибки)
 int System_Start();
 
-/// @brief Остановка системы
+/// @brief Остановить систему
 /// @return Результат (Код ошибки)
 int System_Stop();
 
