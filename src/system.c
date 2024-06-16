@@ -1,12 +1,28 @@
 #include <pthread.h>
 #include <stdlib.h>
+#include <stdint.h>
+#include <stdbool.h>
 #include "system.h"
 #include "log.h"
 #include "configurator.h"
-#include "module_io.h"
+#include "modules/module.h"
+#include "modules/chips/i2c.h"
 #include "mqtt.h"
 
+/// @brief Подключение модулей
+static I2C_Config connectionConfig = 
+{
+    .unitNumber = 0,
+    .frequencyHz = 100000,
+    .readTimeoutMs = 100
+};
+
+static I2C_Connection *connection;      // Подключение I2C
+
 static Config config;
+static Module **modules;                // Модули ввода-вывода (указатель на массив указателей)
+static int modulesCount;                // Количество модулей (в работе)
+
 static pthread_t threadIndication;      // Поток индикации
 static pthread_t threadModules;         // Поток для опроса модулей
 static pthread_t threadMqtt;            // Поток для обмена данными с MQTT
@@ -54,14 +70,70 @@ static int System_InitIndicationData()
 static int System_InitModulesData()
 {
     int result = -1;
-
-    // TODO: Инициализация данных модулей
-    for (int i = 0; i < config.modules_count; i++)
+    modulesCount = 0;
+    // TODO: To test
+    if (config.modules == NULL || config.modules_count <= 0)
     {
-        
+        return result;
     }
 
-    //result = 0;
+    // Проверить количество проинициализированных модулей
+    for (int i = 0; i < config.modules_count; i++)
+    {
+        if (config.modules[i].inited)
+        {
+            modulesCount++;
+        }
+    }
+
+    if (modulesCount <= 0)
+    {
+        return result;
+    }
+
+    // Создать I2C подключение
+    connection = I2C_CreateConnection(&connectionConfig);
+    if (connection == NULL)
+    {
+        Log_Write("System: ERROR. Failed to create I2C connection!");
+        return result;
+    }
+
+    // Выделить память под указатели на модули
+    modules = (Module**)calloc(modulesCount, sizeof(Module*));
+    if (modules == NULL)
+    {
+        Log_Write("System: ERROR. Failed to allocate memory for modules!");
+        free(connection);
+        connection = NULL;
+        return result;
+    }
+    
+    for (int i = 0, j = 0; i < config.modules_count; i++)
+    {        
+        if (config.modules[i].inited)
+        {
+            Module_Config mConfig =
+            {
+                .code = config.modules[i].code,
+                .address = config.modules[i].address,
+                .uniqueName = config.modules[i].uniqueName,
+                .name = config.modules[i].name,
+                .description = config.modules[i].description
+            };
+
+            Module *module = Module_Create(&mConfig, connection);
+            // XXX: Ост 10.06.2024 16:30
+            if (module != NULL)
+            {
+                // Добавить модуль в систему
+                modules[j] = module;
+                j++;
+            }
+        }        
+    }
+
+    result = 0;
     return result;
 }
 
@@ -82,7 +154,7 @@ static int System_InitMqttData()
 /// @brief Обработчик потока индикации
 /// @param args Аргументы
 /// @return Результат
-static void* System_Indication_ThreadHandler(void* args)
+static void* System_Indication_ThreadHandler(void *args)
 {
     while (indicationThreadToRun)
     {
@@ -96,7 +168,7 @@ static void* System_Indication_ThreadHandler(void* args)
 /// @brief Обработчик потока опроса модулей
 /// @param args Аргументы
 /// @return Результат
-static void* System_ModulesPolling_ThreadHandler(void* args)
+static void* System_ModulesPolling_ThreadHandler(void *args)
 {    
     while (modulesThreadToRun)
     {
@@ -109,7 +181,7 @@ static void* System_ModulesPolling_ThreadHandler(void* args)
 /// @brief Обработчик потока обмена данными с Mqtt
 /// @param args Аргументы
 /// @return Результат
-static void* System_MqttDataExchange_ThreadHandler(void* args)
+static void* System_MqttDataExchange_ThreadHandler(void *args)
 {
     while (mqttThreadToRun)
     {
@@ -125,7 +197,7 @@ static void* System_MqttDataExchange_ThreadHandler(void* args)
 int System_Init()
 {
     int result = -1;
-
+    
     // TODO: Инициализация индикации
     // Indication_Init();
 
