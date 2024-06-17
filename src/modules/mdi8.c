@@ -37,15 +37,16 @@ static bool WritePin(Module_Pin* pin)
 
 Module* MDI8Module_Create(Module_Config* config, I2C_Connection *connection, MDI8_MODULE_CHIP_ENUM chipName)
 {
+    // TODO: Ready to test
     Module* module = (Module*)calloc(1, sizeof(Module));
     if (module == NULL)
     {
-        Log_Write("Module: ERROR. Failed to create module MDI8!");
+        Log_Write("Module: ERROR. Failed to allocate memory for module MDI8!");
         return module;
     }
 
     // Инициализация данных модуля
-    module->inited = 0;
+    module->inited = false;
     module->name = config->name;
     module->uniqueName = config->uniqueName;
     module->description = config->description;
@@ -56,11 +57,17 @@ Module* MDI8Module_Create(Module_Config* config, I2C_Connection *connection, MDI
     {
         case MDI8_MODULE_CHIP_NONE:
         {
+            module->chip = NULL;
             break;
         }
         case MDI8_MODULE_CHIP_PCF8574:
         {
             module->chip = Pcf8574Chip_Create(connection, config->address);
+            break;
+        }
+        default:
+        {
+            Log_Write("Module: ERROR. Unknown chip (%d) for module (%s)!", chipName, config->name);
             break;
         }
     }
@@ -70,14 +77,14 @@ Module* MDI8Module_Create(Module_Config* config, I2C_Connection *connection, MDI
         free(module);
         module = NULL;
         return module;
-    }        
+    }
 
     // Входы
     module->inputPinsCount = MDI8_PIN_COUNT;
-    module->inputPins = malloc(sizeof(Module_Pin) * module->inputPinsCount);
+    module->inputPins = (Module_Pin*)calloc(module->inputPinsCount, sizeof(Module_Pin));
     if (module->inputPins == NULL)
     {
-        Log_Write("Module: ERROR. Failed to create input pins!");
+        Log_Write("Module: ERROR. Failed to allocate memory for input pins!");
         free(module->chip);
         module->chip = NULL;
         free(module);
@@ -90,13 +97,18 @@ Module* MDI8Module_Create(Module_Config* config, I2C_Connection *connection, MDI
     {
         module->inputPins[i].number = MDI8_PCF8574_PIN_CORRESPONDENCE[i];
         module->inputPins[i].value = 0;
+        module->inputPins[i].updated = false;
     }
 
     // Выходы
     module->outputPinsCount = 0;
-    
+    module->outputPins = NULL;
+
+    // Функции модуля
     module->ReadPin = ReadPin;
-    module->WritePin = WritePin;    
+    module->WritePin = WritePin;
+
+    module->inited = true;
 
     return module;
 }

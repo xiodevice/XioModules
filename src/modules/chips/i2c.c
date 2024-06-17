@@ -137,7 +137,7 @@ I2C_Connection* I2C_CreateConnection(I2C_Config *config)
 
     if (connection == NULL)
     {
-        Log_Write("I2C: ERROR. Failed to create I2C connection instance!");
+        Log_Write("I2C: ERROR. Failed to allocate memory for I2C connection instance!");
         return connection;
     }
 
@@ -172,7 +172,7 @@ I2C_Connection* I2C_CreateConnection(I2C_Config *config)
 
     connection->opened = true;    
 #else
-    Log_Write("I2C: ERROR. Create connection to I2C is not supported on this platform!");
+    Log_Write("I2C: ERROR. Creating an I2C connection is not supported on this platform!");
     return connection;
 #endif
 
@@ -227,7 +227,7 @@ bool I2C_CheckConnectionAddress(I2C_Connection *connection, uint16_t address)
     }
 
 #else
-    Log_Write("I2C: ERROR. Check connection to I2C is not supported on this platform!");
+    Log_Write("I2C: ERROR. Checking an I2C connection is not supported on this platform!");
     return result;
 #endif
 
@@ -258,7 +258,7 @@ bool I2C_SetFrequency(I2C_Connection *connection, int frequencyHz)
         Log_Write("I2C: ERROR. Failed to set I2C frequency to %d Hz!", frequencyHz);
     }
 #else
-    Log_Write("I2C: ERROR. Set frequency to I2C is not supported on this platform!");
+    Log_Write("I2C: ERROR. Setting I2C bus frequency is not supported on this platform!");
     return result;
 #endif
 
@@ -286,7 +286,7 @@ bool I2C_SetReadTimeout(I2C_Connection *connection, int readTimeoutMs)
         Log_Write("I2C: ERROR. Failed to set I2C read timeout to %d ms!", readTimeoutMs);
     }
 #else
-    Log_Write("I2C: ERROR. Set read timeout to I2C is not supported on this platform!");
+    Log_Write("I2C: ERROR. Setting I2C bus read timeout is not supported on this platform!");
     return result;
 #endif
 

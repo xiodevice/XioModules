@@ -5,15 +5,15 @@
   "modules_count": 3,
   "modules": [
     {
-      "code": 0,
-      "address": 0,
+      "code": 101,
+      "address": 39,
       "uniqueName": "uid_module1",
       "name": "name_module1",
       "description": "description_module1"
     },
     {
-      "code": 0,
-      "address": 0,
+      "code": 111,
+      "address": 40,
       "uniqueName": "uid_module2",
       "name": "name_module2",
       "description": "description_module2"

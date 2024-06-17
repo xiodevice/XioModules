@@ -95,6 +95,7 @@ typedef struct
 // Конфигурация модуля (struct)
 typedef struct
 {
+    bool inited;                // Инициализация пройдена
     int code;                   // Код модуля
     int address;                // Адрес модуля
     char* uniqueName;           // Уникальное имя модуля (будет использоваться при формировании MQTT топика)

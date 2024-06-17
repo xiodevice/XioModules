@@ -9,6 +9,8 @@
 #include "modules/chips/i2c.h"
 #include "mqtt.h"
 
+#define TEST_MODE
+
 /// @brief Подключение модулей
 static I2C_Config connectionConfig = 
 {
@@ -39,14 +41,14 @@ static int mqttThreadToRun = 1;         // Флаг для завершения 
 static int System_InitSystemData()
 {
     int result = -1;
-
+    Log_Write("System: Initializing system data...");
     // Логи
     Log_EnableTerminalOutput(config.log_use_terminal_output);
     Log_UseRowsCleaning(config.log_rows_min_count, config.log_rows_max_count);
 
     // TODO: Инициализация данных системы и применение конфигурации к системе
     
-
+    Log_Write("System: System data initialized.");
     result = 0;
     return result;
 }
@@ -54,24 +56,32 @@ static int System_InitSystemData()
 
 /// @brief Инициализировать данные индикации
 /// @return Результат (0 - успех, отрицательное число - ошибка)
-static int System_InitIndicationData()
+static int System_InitIndication()
 {
     int result = -1;
+    Log_Write("System: Initializing indication...");
+
+#ifdef TEST_MODE
+    Log_Write("System: WARNING. TEST MODE. DO NOT USE IN PRODUCTION.");
+    result = 0;
+#endif
 
     // TODO: Инициализация данных индикации
 
-
+    Log_Write("System: Indication initialized.");
     //result = 0;
     return result;
 }
 
 /// @brief Инициализировать данные модулей
 /// @return Результат (0 - успех, отрицательное число - ошибка)
-static int System_InitModulesData()
+static int System_InitModules()
 {
     int result = -1;
-    modulesCount = 0;
-    // TODO: To test
+    Log_Write("System: Initializing modules...");
+
+    modulesCount = 0;    
+    // TODO: Ready to test
     if (config.modules == NULL || config.modules_count <= 0)
     {
         return result;
@@ -92,18 +102,25 @@ static int System_InitModulesData()
     }
 
     // Создать I2C подключение
+    // TODO: Протестировать создание подключения после переноса на Linux
+    Log_Write("System: Creating I2C connection...");
     connection = I2C_CreateConnection(&connectionConfig);
+#ifdef TEST_MODE // TEMP: После переноса на Linux убрать этот блок
+    connection = calloc(1, sizeof(I2C_Connection));
+    Log_Write("System: WARNING. TEST MODE. DO NOT USE IN PRODUCTION.");
+#endif
     if (connection == NULL)
     {
         Log_Write("System: ERROR. Failed to create I2C connection!");
         return result;
     }
+    Log_Write("System: I2C connection created!");
 
     // Выделить память под указатели на модули
     modules = (Module**)calloc(modulesCount, sizeof(Module*));
     if (modules == NULL)
     {
-        Log_Write("System: ERROR. Failed to allocate memory for modules!");
+        Log_Write("System: ERROR. Failed to allocate memory for modules list !");
         free(connection);
         connection = NULL;
         return result;
@@ -115,6 +132,7 @@ static int System_InitModulesData()
         {
             Module_Config mConfig =
             {
+                .inited = config.modules[i].inited,
                 .code = config.modules[i].code,
                 .address = config.modules[i].address,
                 .uniqueName = config.modules[i].uniqueName,
@@ -133,19 +151,26 @@ static int System_InitModulesData()
         }        
     }
 
+    Log_Write("System: Modules initialized.");
     result = 0;
     return result;
 }
 
 /// @brief Инициализировать данные Mqtt
 /// @return Результат (0 - успех, отрицательное число - ошибка)
-static int System_InitMqttData()
+static int System_InitMqtt()
 {
     int result = -1;
+    Log_Write("System: Initializing MQTT...");
 
     // TODO: Инициализация данных Mqtt
 
+#ifdef TEST_MODE
+    Log_Write("System: WARNING. TEST MODE. DO NOT USE IN PRODUCTION.");
+    result = 0;
+#endif
 
+    Log_Write("System: MQTT initialized.");
     //result = 0;
     return result;
 }
@@ -265,26 +290,26 @@ int System_Init()
     }
 
     // Инициализация данных индикации
-    res = System_InitIndicationData();
+    res = System_InitIndication();
     if (res < 0)
     {
-        Log_Write("System: ERROR. Failed to init indication data!");
+        Log_Write("System: ERROR. Failed to init indication!");
         return result;
     }
 
     // Инициализация данных модулей
-    res = System_InitModulesData();
+    res = System_InitModules();
     if (res < 0)
     {
-        Log_Write("System: ERROR. Failed to init modules data!");
+        Log_Write("System: ERROR. Failed to init modules!");
         return result;
     }
 
     // Инициализация данных Mqtt
-    res = System_InitMqttData();
+    res = System_InitMqtt();
     if (res < 0)
     {
-        Log_Write("System: ERROR. Failed to init MQTT data!");
+        Log_Write("System: ERROR. Failed to init MQTT!");
         return result;
     }
     
@@ -300,11 +325,12 @@ int System_Start()
     // TODO: Запуск системы
     Log_Write("System: Starting...");
 
+    Log_Write("System: Starting indication thread");
     // Создание потока индикации
     int res1 = pthread_create(&threadIndication, NULL, System_Indication_ThreadHandler, NULL);
     if (res1 != 0)
     {
-        Log_Write("System: ERROR. Failed to start Thread_Indication");
+        Log_Write("System: ERROR. Failed to start indication (Thread_Indication). Error code: %d", res1);
         return result;
     }
 
@@ -312,7 +338,7 @@ int System_Start()
     int res2 = pthread_create(&threadModules, NULL, System_ModulesPolling_ThreadHandler, NULL);
     if (res2 != 0)
     {
-        Log_Write("System: ERROR. Failed to start Thread_Modules");
+        Log_Write("System: ERROR. Failed to start polling thread (Thread_Modules). Error code: %d", res2);
         return result;
     }
 
@@ -320,7 +346,7 @@ int System_Start()
     int res3 = pthread_create(&threadMqtt, NULL, System_MqttDataExchange_ThreadHandler, NULL);
     if (res3 != 0)
     {
-        Log_Write("System: ERROR. Failed to start Thread_MQTT");
+        Log_Write("System: ERROR. Failed to start MQTT data exchange thread (Thread_MQTT). Error code: %d", res3);
         return result;
     }
 

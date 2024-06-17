@@ -48,10 +48,13 @@ static int WritePin(int pinNumber, int value)
 
 Chip* Pcf8574Chip_Create(I2C_Connection *connection, int address)
 {
+    if (connection == NULL)
+        return NULL;
+    // TODO: Ready to test
     Chip* chip = calloc(1, sizeof(Chip));
     if (chip == NULL)
     {
-        Log_Write("Module: ERROR. Failed to create chip!");
+        Log_Write("PCF8574: ERROR. Failed to allocate memory for chip!");
         return chip;
     }
 

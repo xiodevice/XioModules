@@ -35,13 +35,22 @@ Module* Module_Create(Module_Config* config, I2C_Connection *connection)
     if (config == NULL)
         return NULL;
 
-    Module *module = NULL;
+    Module *module = NULL;    
+    // TODO: Ready to test
+    if (!config->inited)
+        return module;
+    
     switch (config->code)
     {
         case MODULE_NAME_MDI8_PCF8574:
         {
             module = MDI8Module_Create(config, connection, MDI8_MODULE_CHIP_PCF8574);
-            // XXX: Ост 11.06.2024 16:00
+            if (module == NULL)
+            {
+                Log_Write("Module: ERROR. Failed to create module MDI8 (%s)!", config->name);
+            }
+
+            // XXX: Ост 17.06.2024 11:00
             break;
         }
         case MODULE_NAME_MDI16_PCF8575:
@@ -50,11 +59,11 @@ Module* Module_Create(Module_Config* config, I2C_Connection *connection)
         }
         default:
         {
+            Log_Write("Module: ERROR. Unknown code (%d) for module (%s)!", config->code, config->name);
             break;
         }
     }
 
-    module->inited = 1;
     return module;
 }
 

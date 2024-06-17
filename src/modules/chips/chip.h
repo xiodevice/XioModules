@@ -40,7 +40,12 @@ typedef struct
 /// @return Экземпляр чипа. NULL - ошибка создания
 Chip* Chip_Create(CHIP_NAME_ENUM chipName, I2C_Connection* connection, int address);
 
-/// @brief Проверка подключения чипа
+/// @brief Удалить экземпляр чипа
+/// @param chip Чип
+/// @return Результат: true - успешно, false - ошибка
+bool Chip_Destroy(Chip* chip);
+
+/// @brief Проверить подключение чипа
 /// @param chip Чип
 /// @return Результат: true - успешно, false - ошибка
 bool Chip_CheckConnection(Chip* chip);
