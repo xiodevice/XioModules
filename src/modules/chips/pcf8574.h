@@ -5,7 +5,7 @@
 #ifndef PCF8574CHIP_H
 #define PCF8574CHIP_H
 
-#include "chip.h"
+#include "ichip.h"
 #include "i2c.h"
 
 

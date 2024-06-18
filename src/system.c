@@ -54,7 +54,7 @@ static int System_InitSystemData()
 }
 
 
-/// @brief Инициализировать данные индикации
+/// @brief Инициализировать индикацию
 /// @return Результат (0 - успех, отрицательное число - ошибка)
 static int System_InitIndication()
 {
@@ -73,7 +73,7 @@ static int System_InitIndication()
     return result;
 }
 
-/// @brief Инициализировать данные модулей
+/// @brief Инициализировать модули
 /// @return Результат (0 - успех, отрицательное число - ошибка)
 static int System_InitModules()
 {
@@ -127,7 +127,7 @@ static int System_InitModules()
     }
     
     for (int i = 0, j = 0; i < config.modules_count; i++)
-    {        
+    {
         if (config.modules[i].inited)
         {
             Module_Config mConfig =
@@ -148,7 +148,7 @@ static int System_InitModules()
                 modules[j] = module;
                 j++;
             }
-        }        
+        }
     }
 
     Log_Write("System: Modules initialized.");
@@ -156,7 +156,7 @@ static int System_InitModules()
     return result;
 }
 
-/// @brief Инициализировать данные Mqtt
+/// @brief Инициализировать Mqtt
 /// @return Результат (0 - успех, отрицательное число - ошибка)
 static int System_InitMqtt()
 {
@@ -194,10 +194,18 @@ static void* System_Indication_ThreadHandler(void *args)
 /// @param args Аргументы
 /// @return Результат
 static void* System_ModulesPolling_ThreadHandler(void *args)
-{    
+{
+    // TODO: Обработчик потока опроса модулей
     while (modulesThreadToRun)
     {
-        // TODO: Обработчик потока опроса модулей
+        for (int i = 0; i < modulesCount; i++)
+        {
+            // Чтение всех выводов модуля
+            Module_ReadAllPins(modules[i]);
+
+            // Запись всех выводов модуля
+            Module_WriteAllPins(modules[i]);
+        }
     }
 
     return EXIT_SUCCESS;

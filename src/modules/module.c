@@ -8,28 +8,6 @@
 
 // ***** Предоставляемые интерфейсы module_io.h (реализация)*****
 
-int Module_InitBus(I2C_Connection *connection)
-{
-    int result = -1;
-
-    // TODO: Инициализация шины подключения модулей
-
-    //result = 0;
-    return result;
-}
-
-
-int Module_CheckBus(I2C_Connection connection)
-{
-    int result = -1;
-
-    // TODO: Проверка шины подключения модулей
-
-    //result = 0;
-    return result;
-}
-
-
 Module* Module_Create(Module_Config* config, I2C_Connection *connection)
 {
     if (config == NULL)
@@ -40,8 +18,10 @@ Module* Module_Create(Module_Config* config, I2C_Connection *connection)
     if (!config->inited)
         return module;
     
+    // MOD: Модули ввода-вывода. Создание модулей
     switch (config->code)
     {
+        // Модули дискретного ввода
         case MODULE_NAME_MDI8_PCF8574:
         {
             module = MDI8Module_Create(config, connection, MDI8_MODULE_CHIP_PCF8574);
@@ -50,11 +30,44 @@ Module* Module_Create(Module_Config* config, I2C_Connection *connection)
                 Log_Write("Module: ERROR. Failed to create module MDI8 (%s)!", config->name);
             }
 
-            // XXX: Ост 17.06.2024 11:00
             break;
         }
         case MODULE_NAME_MDI16_PCF8575:
-        {            
+        {
+
+            break;
+        }
+        // Модули дискретного вывода
+        case MODULE_NAME_MDO8R1_PCF8574:
+        {
+
+            break;
+        }
+        case MODULE_NAME_MDO6R2_PCF8574:
+        {
+
+            break;
+        }
+        case MODULE_NAME_MDO6R3_PCF8574:
+        {
+
+            break;
+        }
+        case MODULE_NAME_MDO8T_PCF8574:
+        {
+
+            break;
+        }
+        // Модули аналогового ввода
+        case MODULE_NAME_MAI4U_ADS1115:
+        {
+
+            break;
+        }
+        // Модули аналогового вывода
+        case MODULE_NAME_MAO8_PCA9685:
+        {
+
             break;
         }
         default:
@@ -68,7 +81,7 @@ Module* Module_Create(Module_Config* config, I2C_Connection *connection)
 }
 
 
-int Module_Destroy(Module* module)
+bool Module_Destroy(Module* module)
 {
     int result = -1;
 
@@ -79,9 +92,19 @@ int Module_Destroy(Module* module)
 }
 
 
-int Module_ReadPins(Module* module)
+bool Module_ReadPin(Module* module, Module_Pin pin)
 {
-    int result = -1;
+    bool result = false;
+
+    // TODO: Чтение вывода модуля
+
+    //result = true;
+    return result;
+}
+
+bool Module_ReadAllPins(Module* module)
+{
+    bool result = false;
     
     if (module == NULL)
         return result;
@@ -92,29 +115,39 @@ int Module_ReadPins(Module* module)
         module->inputPins[i].value = module->chip->ReadPin(module->inputPins[i].number);
     }
 
-    result = 0;
+    result = true;
     return result;
 }
 
 
-int Module_WritePins(Module* module)
+bool Module_WritePin(Module* module, Module_Pin pin)
 {
-    int result = -1;
+    bool result = false;
+
+    // TODO: Запись вывода модуля
+
+    //result = true;
+    return result;
+}
+
+bool Module_WriteAllPins(Module* module)
+{
+    bool result = false;
 
     // TODO: Запись выводов модуля
 
-    //result = 0;
+    //result = true;
     return result;
 }
 
 
-int Module_CheckConnection(Module* module)
+bool Module_CheckConnection(Module* module)
 {
-    int result = -1;
+    bool result = false;
 
     // TODO: Проверка связи с модулем
 
-    //result = 0;
+    //result = true;
     return result;
 }
 

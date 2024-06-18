@@ -10,29 +10,6 @@ static int const MDI8_PIN_COUNT = 8;
 /// @brief Значения - выводы микросхемы.
 static int const MDI8_PCF8574_PIN_CORRESPONDENCE[] = { 0, 1, 2, 3, 4, 5, 6, 7 };
 
-
-static bool ReadPin(Module_Pin* pin)
-{
-    bool result = false;
-
-    // TODO: Чтение входа модуля MDI8
-
-    result = true;
-    return result;
-}
-
-
-static bool WritePin(Module_Pin* pin)
-{
-    bool result = false;
-
-    // TODO: Запись выхода модуля MDI8
-
-    result = true;
-    return result;
-}
-
-
 // ***** Предоставляемые интерфейсы module_io.h (реализация)*****
 
 Module* MDI8Module_Create(Module_Config* config, I2C_Connection *connection, MDI8_MODULE_CHIP_ENUM chipName)
@@ -98,15 +75,12 @@ Module* MDI8Module_Create(Module_Config* config, I2C_Connection *connection, MDI
         module->inputPins[i].number = MDI8_PCF8574_PIN_CORRESPONDENCE[i];
         module->inputPins[i].value = 0;
         module->inputPins[i].updated = false;
+        module->inputPins[i].read = false;
     }
 
     // Выходы
     module->outputPinsCount = 0;
     module->outputPins = NULL;
-
-    // Функции модуля
-    module->ReadPin = ReadPin;
-    module->WritePin = WritePin;
 
     module->inited = true;
 
