@@ -14,8 +14,8 @@ static char* fileName;  // Имя файла конфигурации
 /// @brief Конфигурация модул 1 по умолчанию
 static Config_Module configModule1Default =
 {
-    .code = 0,
-    .address = 0,
+    .code = 10000,
+    .address = 11,
     .uniqueName = "uid_module1",
     .name = "name_module1",
     .description = "description_module1"
@@ -24,8 +24,8 @@ static Config_Module configModule1Default =
 /// @brief Конфигурация модул 2 по умолчанию
 static Config_Module configModule2Default =
 {
-    .code = 0,
-    .address = 0,
+    .code = 20000,
+    .address = 22,
     .uniqueName = "uid_module2",
     .name = "name_module2",
     .description = "description_module2"
@@ -34,8 +34,8 @@ static Config_Module configModule2Default =
 /// @brief Конфигурация модул 3 по умолчанию
 static Config_Module configModule3Default =
 {
-    .code = 0,
-    .address = 0,
+    .code = 30000,
+    .address = 33,
     .uniqueName = "uid_module3",
     .name = "name_module3",
     .description = "description_module3"

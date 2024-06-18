@@ -90,13 +90,12 @@ typedef struct
     int inputPinsCount;                     // Количество входов
     int outputPinsCount;                    // Количество выходов
     MODULE_STATE_ENUM state;                // Состояние
-    I2C_Connection *connection;             // I2C подключение
-    Module_Pin* inputPins;                  // Входы
-    Module_Pin* outputPins;                 // Выходы
-    Chip* chip;                             // Микросхема
-    char* uniqueName;                       // Уникальное имя модуля (будет использоваться при формировании MQTT топика)
-    char* name;                             // Пользовательское имя модуля
-    char* description;                      // Описание модуля
+    Module_Pin *inputPins;                  // Входы
+    Module_Pin *outputPins;                 // Выходы
+    Chip *chip;                             // Микросхема
+    char *uniqueName;                       // Уникальное имя модуля (будет использоваться при формировании MQTT топика)
+    char *name;                             // Пользовательское имя модуля
+    char *description;                      // Описание модуля
 } Module;
 
 // Конфигурация модуля (struct)
@@ -105,9 +104,9 @@ typedef struct
     bool inited;                // Инициализация пройдена
     int code;                   // Код модуля
     int address;                // Адрес модуля
-    char* uniqueName;           // Уникальное имя модуля (будет использоваться при формировании MQTT топика)
-    char* name;                 // Пользовательское имя модуля
-    char* description;          // Описание модуля
+    char *uniqueName;           // Уникальное имя модуля (будет использоваться при формировании MQTT топика)
+    char *name;                 // Пользовательское имя модуля
+    char *description;          // Описание модуля
 } Module_Config;
 
 
@@ -115,45 +114,45 @@ typedef struct
 /// @param config Конфигурация модуля
 /// @param connection Подключение
 /// @return Экземпляр модуля. NULL - ошибка создания
-Module* Module_Create(Module_Config* config, I2C_Connection *connection);
+Module* Module_Create(Module_Config *config, I2C_Connection *connection);
 
 /// @brief Удалить экземпляр модуля
 /// @param module Модуль
 /// @return Результат: true - успешно; false - ошибка
-bool Module_Destroy(Module* module);
+bool Module_Destroy(Module *module);
 
 
 /// @brief Прочитать вывод модуля
 /// @param pin Модуль
 /// @param number Вывод
 /// @return Результат: true - успешно; false - ошибка
-bool Module_ReadPin(Module* module, Module_Pin* pin);
+bool Module_ReadPin(Module *module, Module_Pin *pin);
 
 /// @brief Прочитать все выводы модуля
 /// @param readPins Модуль
 /// @return Результат: true - успешно; false - ошибка
-bool Module_ReadAllPins(Module* module);
+bool Module_ReadAllPins(Module *module);
 
 
 /// @brief Запиcать вывод модуля
 /// @param pin Модуль
 /// @param number Вывод
 /// @return Результат: true - успешно; false - ошибка
-bool Module_WritePin(Module* module, Module_Pin* pin);
+bool Module_WritePin(Module *module, Module_Pin *pin);
 
 /// @brief Запиcать все выводы модуля
 /// @param writePins Модуль
 /// @return Результат: true - успешно; false - ошибка
-bool Module_WriteAllPins(Module* module);
+bool Module_WriteAllPins(Module *module);
 
 
 /// @brief Проверить связь с модулем
 /// @param module Модуль
 /// @return Результат операции (Код ошибки), 0 - есть; -1 - нет
-bool Module_CheckConnection(Module* module);
+bool Module_CheckConnection(Module *module);
 
 /// @brief Отобразить данные модуля
 /// @param module Модуль
-void Module_ShowData(Module* module);
+void Module_ShowData(Module *module);
 
 #endif

@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <unistd.h>
 #include "system.h"
 #include "log.h"
 #include "configurator.h"
@@ -184,6 +185,9 @@ static void* System_Indication_ThreadHandler(void *args)
     while (indicationThreadToRun)
     {
         // TODO: Обработчик потока индикации
+
+        // Засыпаем на 1 миллисекунду
+        usleep(1000);
     }
 
     return EXIT_SUCCESS;
@@ -205,7 +209,11 @@ static void* System_ModulesPolling_ThreadHandler(void *args)
 
             // Запись всех выводов модуля
             Module_WriteAllPins(modules[i]);
+
+            // Засыпаем на 1 миллисекунду
+            usleep(1000);
         }
+        
     }
 
     return EXIT_SUCCESS;
@@ -219,6 +227,9 @@ static void* System_MqttDataExchange_ThreadHandler(void *args)
     while (mqttThreadToRun)
     {
         // TODO: Обработчик потока обмена данными с Mqtt
+
+        // Засыпаем на 1 миллисекунду
+        usleep(1000);
     }    
     
     return EXIT_SUCCESS;
@@ -341,7 +352,9 @@ int System_Start()
         Log_Write("System: ERROR. Failed to start indication (Thread_Indication). Error code: %d", res1);
         return result;
     }
+    Log_Write("System: Indication thread started");
 
+    Log_Write("System: Starting modules polling thread");
     // Создание потока опроса модулей
     int res2 = pthread_create(&threadModules, NULL, System_ModulesPolling_ThreadHandler, NULL);
     if (res2 != 0)
@@ -349,7 +362,9 @@ int System_Start()
         Log_Write("System: ERROR. Failed to start polling thread (Thread_Modules). Error code: %d", res2);
         return result;
     }
+    Log_Write("System: Modules polling thread started");
 
+    Log_Write("System: Starting MQTT data exchange thread");
     // Создание потока обмена данными с Mqtt
     int res3 = pthread_create(&threadMqtt, NULL, System_MqttDataExchange_ThreadHandler, NULL);
     if (res3 != 0)
@@ -357,6 +372,7 @@ int System_Start()
         Log_Write("System: ERROR. Failed to start MQTT data exchange thread (Thread_MQTT). Error code: %d", res3);
         return result;
     }
+    Log_Write("System: MQTT data exchange thread started");
 
     Log_Write("System: Started");
 
@@ -383,10 +399,6 @@ int System_Start()
         Log_Write("System: ERROR. Failed to join Thread_MQTT with result %d", res3);
         return result;
     }
-    
-    //EINVAL = 22
-    //ESRCH = 3
-    //EDEADLK = 36
     
     result = 0;
     return result;

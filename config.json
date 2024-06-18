@@ -5,22 +5,22 @@
   "modules_count": 3,
   "modules": [
     {
-      "code": 101,
-      "address": 39,
+      "code": 10000,
+      "address": 11,
       "uniqueName": "uid_module1",
       "name": "name_module1",
       "description": "description_module1"
     },
     {
-      "code": 111,
-      "address": 40,
+      "code": 20000,
+      "address": 22,
       "uniqueName": "uid_module2",
       "name": "name_module2",
       "description": "description_module2"
     },
     {
-      "code": 0,
-      "address": 0,
+      "code": 30000,
+      "address": 33,
       "uniqueName": "uid_module3",
       "name": "name_module3",
       "description": "description_module3"

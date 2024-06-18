@@ -12,7 +12,7 @@ static int const MDI8_PCF8574_PIN_CORRESPONDENCE[] = { 0, 1, 2, 3, 4, 5, 6, 7 };
 
 // ***** Предоставляемые интерфейсы module_io.h (реализация)*****
 
-Module* MDI8Module_Create(Module_Config* config, I2C_Connection *connection, MDI8_MODULE_CHIP_ENUM chipName)
+Module* MDI8Module_Create(Module_Config *config, I2C_Connection *connection, MDI8_MODULE_CHIP_ENUM chipName)
 {
     // TODO: Ready to test
     Module* module = (Module*)calloc(1, sizeof(Module));

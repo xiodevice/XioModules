@@ -8,7 +8,7 @@
 
 // ***** Предоставляемые интерфейсы module_io.h (реализация)*****
 
-Module* Module_Create(Module_Config* config, I2C_Connection *connection)
+Module* Module_Create(Module_Config *config, I2C_Connection *connection)
 {
     if (config == NULL)
         return NULL;
@@ -81,18 +81,18 @@ Module* Module_Create(Module_Config* config, I2C_Connection *connection)
 }
 
 
-bool Module_Destroy(Module* module)
+bool Module_Destroy(Module *module)
 {
-    int result = -1;
+    bool result = false;
 
     // TODO: Удаление экземпляра модуля
 
-    //result = 0;
+    //result = true;
     return result;
 }
 
 
-bool Module_ReadPin(Module* module, Module_Pin pin)
+bool Module_ReadPin(Module *module, Module_Pin *pin)
 {
     bool result = false;
 
@@ -102,7 +102,7 @@ bool Module_ReadPin(Module* module, Module_Pin pin)
     return result;
 }
 
-bool Module_ReadAllPins(Module* module)
+bool Module_ReadAllPins(Module *module)
 {
     bool result = false;
     
@@ -120,7 +120,7 @@ bool Module_ReadAllPins(Module* module)
 }
 
 
-bool Module_WritePin(Module* module, Module_Pin pin)
+bool Module_WritePin(Module *module, Module_Pin *pin)
 {
     bool result = false;
 
@@ -130,7 +130,7 @@ bool Module_WritePin(Module* module, Module_Pin pin)
     return result;
 }
 
-bool Module_WriteAllPins(Module* module)
+bool Module_WriteAllPins(Module *module)
 {
     bool result = false;
 
@@ -141,7 +141,7 @@ bool Module_WriteAllPins(Module* module)
 }
 
 
-bool Module_CheckConnection(Module* module)
+bool Module_CheckConnection(Module *module)
 {
     bool result = false;
 
@@ -152,7 +152,7 @@ bool Module_CheckConnection(Module* module)
 }
 
 
-void Module_ShowData(Module* module)
+void Module_ShowData(Module *module)
 {
     // TODO: Отобразить данные модуля
 }
