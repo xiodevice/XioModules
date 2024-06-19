@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 #include <fcntl.h>
 #include "../../log.h"
 #include "i2c.h"
@@ -8,7 +9,8 @@
 
 #ifdef __linux__
 
-//#include <linux/i2c-dev.h>
+#include <sys/ioctl.h>
+#include <linux/i2c-dev.h>
 
 /// @brief Системные подключения I2C
 static const char* I2C_LINUX_DEVICES[4] = {
@@ -44,7 +46,7 @@ static int I2C_Read(I2C_Connection *connection, uint16_t address, uint16_t regAd
 
 #ifdef __linux__
     // Выбор устройства на шине
-    int res = ioctl(connection->fd, I2C_SLAVE, address)
+    int res = ioctl(connection->fd, I2C_SLAVE, address);
     if (res < 0) 
     {
         Log_Write("I2C: ERROR. Failed to acquire bus access and/or find the slave %d (0x%02x)!", address, address);
@@ -52,7 +54,7 @@ static int I2C_Read(I2C_Connection *connection, uint16_t address, uint16_t regAd
     }
 
     // Выбор стартового регистора для чтения
-    res = write(connection->fd, regAddress, 1);
+    res = write(connection->fd, &regAddress, 1);
     if (res != regsCount)
     {
         Log_Write("I2C: ERROR. Faild to use start register 0x%02x (count = %d) for slave %d (0x%02x)!", 
@@ -98,7 +100,7 @@ static bool I2C_Write(I2C_Connection *connection, uint16_t address, uint16_t reg
     }
 
     // Выбор устройства на шине
-    int res = ioctl(connection->fd, I2C_SLAVE, address)
+    int res = ioctl(connection->fd, I2C_SLAVE, address);
     if (res < 0) 
     {
         Log_Write("I2C: ERROR. Failed to acquire bus access and/or find the slave %d (0x%02x)!", address, address);
@@ -107,10 +109,10 @@ static bool I2C_Write(I2C_Connection *connection, uint16_t address, uint16_t reg
 
     // Запись данных в регистр
     res = write(connection->fd, buffer, len + 1);
-    if (res != regsCount)
+    if (res != len)
     {
         Log_Write("I2C: ERROR. Faild to use start register 0x%02x (count = %d) for slave %d (0x%02x)!", 
-            regAddress, regsCount, address, address);
+            regAddress, len, address, address);
         return result;
     }
 #else
@@ -219,7 +221,7 @@ bool I2C_CheckConnectionAddress(I2C_Connection *connection, uint16_t address)
 
     // Попробуем выполнить чтение одного байта для проверки устройства
     char buffer;
-    int res = read(connection->fd, &buffer, 1);
+    res = read(connection->fd, &buffer, 1);
     if (res != 1)
     {
         Log_Write("I2C: ERROR. The slave %d (0x%02x) is not responding!", address, address);
@@ -251,12 +253,13 @@ bool I2C_SetFrequency(I2C_Connection *connection, int frequencyHz)
 #ifdef __linux__
     // !!! Не уверен в правильности и последовательности действий !!!
     // Установка частоты
-    //int i2cFrequencyCode = i2c_frequency_to_code(frequencyHz);  // Функция для преобразования частоты в код частоты
+    /*int i2cFrequencyCode = i2c_frequency_to_code(frequencyHz);  // Функция для преобразования частоты в код частоты
     int res = ioctl(connection->fd, I2C_FREQ, i2cFrequencyCode);
     if (res < 0)
     {
         Log_Write("I2C: ERROR. Failed to set I2C frequency to %d Hz!", frequencyHz);
-    }
+    }*/
+    Log_Write("I2C: ERROR. Setting I2C bus frequency is not supported from code!");
 #else
     Log_Write("I2C: ERROR. Setting I2C bus frequency is not supported on this platform!");
     return result;
