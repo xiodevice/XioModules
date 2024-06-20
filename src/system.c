@@ -10,7 +10,7 @@
 #include "modules/chips/i2c.h"
 #include "mqtt.h"
 
-#define TEST_MODE
+//#define TEST_MODE
 
 /// @brief Подключение модулей
 static I2C_Config connectionConfig = 
@@ -34,6 +34,9 @@ static int indicationThreadToRun = 1;   // Флаг для завершения 
 static int modulesThreadToRun = 1;      // Флаг для завершения потока опроса модулей
 static int mqttThreadToRun = 1;         // Флаг для завершения потока обмена данными с MQTT
 
+static int delayIndicationThreadUsec = 1000;    // Задержка в потоке индикации (в микросекундах)
+static int delayModulesThreadUsec = 1000;       // Задержка в потоке опроса модулей (в микросекундах)
+static int delayMqttThreadUsec = 1000;          // Задержка в потоке обмена данными с MQTT (в микросекундах)
 
 // ***** Инициализация *****
 
@@ -102,13 +105,13 @@ static int System_InitModules()
         return result;
     }
 
-    // Создать I2C подключение
-    // TODO: Протестировать создание подключения после переноса на Linux
+    // Создать I2C подключение    
     Log_Write("System: Creating I2C connection...");
     connection = I2C_CreateConnection(&connectionConfig);
-#ifdef TEST_MODE // TEMP: После переноса на Linux убрать этот блок
+#ifndef __linux__ 
+    // TEMP: Создание эмуляции подключения для пропуска ошибки на Windows
     connection = calloc(1, sizeof(I2C_Connection));
-    Log_Write("System: WARNING. TEST MODE. DO NOT USE IN PRODUCTION.");
+    Log_Write("System: WARNING. TEST MODE. DO NOT USE IN PRODUCTION. I2C connection created.");
 #endif
     if (connection == NULL)
     {
@@ -186,8 +189,8 @@ static void* System_Indication_ThreadHandler(void *args)
     {
         // TODO: Обработчик потока индикации
 
-        // Засыпаем на 1 миллисекунду
-        usleep(1000);
+        // Засыпаем
+        usleep(delayIndicationThreadUsec);
     }
 
     return EXIT_SUCCESS;
@@ -210,8 +213,8 @@ static void* System_ModulesPolling_ThreadHandler(void *args)
             // Запись всех выводов модуля
             Module_WriteAllPins(modules[i]);
 
-            // Засыпаем на 1 миллисекунду
-            usleep(1000);
+            // Засыпаем
+            usleep(delayModulesThreadUsec);
         }
         
     }
@@ -228,8 +231,8 @@ static void* System_MqttDataExchange_ThreadHandler(void *args)
     {
         // TODO: Обработчик потока обмена данными с Mqtt
 
-        // Засыпаем на 1 миллисекунду
-        usleep(1000);
+        // Засыпаем
+        usleep(delayMqttThreadUsec);
     }    
     
     return EXIT_SUCCESS;
@@ -415,6 +418,9 @@ int System_Stop()
     indicationThreadToRun = 0;
     modulesThreadToRun = 0;
     mqttThreadToRun = 0;
+
+    // Отсоединение от шины I2C
+    I2C_DestroyConnection(connection);
 
     Log_Write("System: Stopped");
 

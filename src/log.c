@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdarg.h>
+#include <stdbool.h>
 #include <time.h>
 #include "log.h"
 
@@ -11,9 +12,9 @@ static pthread_mutex_t logWriteMutex;
 
 #endif
 
-static char useRowsCleaning = 0;        // Использовать максимальное количество строк
-static char enableTerminalOutput = 1;   // Вывод в терминал включен (1) или выключен (0)
-static char inited = 0;                 // Проинициализирован
+static bool useRowsCleaning = 0;        // Использовать максимальное количество строк
+static bool enableTerminalOutput = 1;   // Вывод в терминал включен (1) или выключен (0)
+static bool inited = 0;                 // Проинициализирован
 
 static int rowsMaxCount = 10000;        // Максимальное количество строк до чистки
 static int rowsMinCount = 9000;         // Минимальное количество строк после чистки
@@ -162,7 +163,7 @@ void Log_Write(const char* message, ...)
 {
     if (!inited)
     {
-        printf("Log: Log file not inited! It can't be written\n");
+        printf("Log: WARNING. Log file not inited! It can't be written\n");
         //return;
     }
 
@@ -170,42 +171,47 @@ void Log_Write(const char* message, ...)
     pthread_mutex_lock(&logWriteMutex);
 #endif
 
-    if (useRowsCleaning && inited)
-    {
-        if (logFileRowsCount >= rowsMaxCount)
-        {
-            int rowsToRemove = logFileRowsCount - rowsMinCount;
-            if (rowsToRemove >= 0)
-            {
-                int removeRes = Log_RemoveLogFileRowsFromBeginning(rowsToRemove);
-                if (removeRes > 0)
-                    logFileRowsCount = rowsMinCount;
-            }
-        }
-    }
-
-    FILE* logFile = fopen(fileName, "a");
-    if (logFile == NULL)
-    {
-        printf("Log: Error opening log file!\n");
-        //return;
-    }
-
     va_list args;
     va_start(args, message);
 
-    time_t timer = time(NULL); // Текущее время в тиках
-    const struct tm* t = localtime(&timer); // Текущее время в нормальном формате
-    
-    if (logFile != NULL)
-    {
-        fprintf(logFile, "%02d.%02d.%d %02d:%02d:%02d: ", t->tm_mday, t->tm_mon+1, t->tm_year+1900, t->tm_hour, t->tm_min, t->tm_sec);
-        vfprintf(logFile, message, args);
-        fprintf(logFile, "\n");
-        logFileRowsCount++;
-    }    
+    time_t timer = time(NULL);                  // Текущее время в тиках
+    const struct tm* t = localtime(&timer);     // Текущее время в нормальном формате
 
-    if (!inited || enableTerminalOutput)
+    FILE* logFile = NULL;
+
+    if (inited)
+    {
+        if (useRowsCleaning && inited)
+        {
+            if (logFileRowsCount >= rowsMaxCount)
+            {
+                int rowsToRemove = logFileRowsCount - rowsMinCount;
+                if (rowsToRemove >= 0)
+                {
+                    int removeRes = Log_RemoveLogFileRowsFromBeginning(rowsToRemove);
+                    if (removeRes > 0)
+                        logFileRowsCount = rowsMinCount;
+                }
+            }
+        }
+
+        logFile = fopen(fileName, "a");
+        if (logFile == NULL)
+        {
+            printf("Log: WARNING. Faild to open log file to write log data!\n");
+            //return;
+        }
+
+        if (logFile != NULL)
+        {
+            fprintf(logFile, "%02d.%02d.%d %02d:%02d:%02d: ", t->tm_mday, t->tm_mon+1, t->tm_year+1900, t->tm_hour, t->tm_min, t->tm_sec);
+            vfprintf(logFile, message, args);
+            fprintf(logFile, "\n");
+            logFileRowsCount++;
+        }
+    }
+    
+    if (enableTerminalOutput)
     {
         printf("%02d.%02d.%d %02d:%02d:%02d: ", t->tm_mday, t->tm_mon+1, t->tm_year+1900, t->tm_hour, t->tm_min, t->tm_sec);
         vprintf(message, args);

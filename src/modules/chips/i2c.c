@@ -174,7 +174,7 @@ I2C_Connection* I2C_CreateConnection(I2C_Config *config)
 
     connection->opened = true;    
 #else
-    Log_Write("I2C: ERROR. Creating an I2C connection is not supported on this platform!");
+    Log_Write("I2C: WARNING. Creating an I2C connection is not supported on this platform!");
     return connection;
 #endif
 
