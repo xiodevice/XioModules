@@ -1,7 +1,7 @@
 #ifndef LOG_H
 #define LOG_H
 
-#define LOG_MULTITHREAD_MODE 1
+//#define LOG_MULTITHREAD_MODE
 
 /// @brief Инициализировать Log
 /// @return Результат операции (Код ошибки)

@@ -47,7 +47,7 @@ static int Log_RemoveLogFileRowsFromBeginning(int rowsCount)
         return result;
     }
 
-    char ch;
+    int ch;
     while (rowsCount > 0 && (ch = fgetc(file)) != EOF)
     {
         if (ch == '\n')
@@ -82,18 +82,23 @@ static int Log_RemoveLogFileRowsFromBeginning(int rowsCount)
 static int Log_GetFileRowsCount()
 {
     int result = 0;
+    
     FILE* file = fopen(fileName, "r");
     if (file == NULL)
+    {
+        Log_Write("Log: ERROR. Failed to open log file!");
         return -1;
-
-    char ch;
-    while ((ch = fgetc(file)) != EOF) {
+    }
+    
+    int ch;
+    while ((ch = fgetc(file)) != EOF) 
+    {
         if (ch == '\n') {
             result++;
         }
     }
-
-    fclose(file);
+   
+    fclose(file);    
     return result;
 }
 
@@ -110,7 +115,7 @@ int Log_Init()
 #endif
     
     fileName = LOG_FILE_NAME_DEFAULT;
-    
+        
     FILE* logFile = fopen(fileName, "a");
     if (logFile == NULL)
     {
@@ -157,15 +162,15 @@ void Log_Write(const char* message, ...)
 {
     if (!inited)
     {
-        printf("Log: Not inited!\n");
-        return;
-    }        
+        printf("Log: Log file not inited! It can't be written\n");
+        //return;
+    }
 
 #ifdef LOG_MULTITHREAD_MODE
     pthread_mutex_lock(&logWriteMutex);
 #endif
 
-    if (useRowsCleaning)
+    if (useRowsCleaning && inited)
     {
         if (logFileRowsCount >= rowsMaxCount)
         {
@@ -209,7 +214,8 @@ void Log_Write(const char* message, ...)
     
     va_end(args);
     
-    fclose(logFile);
+    if (logFile != NULL)
+        fclose(logFile);
 
 #ifdef LOG_MULTITHREAD_MODE
     pthread_mutex_unlock(&logWriteMutex);
