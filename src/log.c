@@ -148,7 +148,7 @@ void Log_UseRowsCleaning(int minCount, int maxCount)
         useRowsCleaning = 0;
     }
     else if (maxCount > 0)
-    {        
+    {
         rowsMaxCount = maxCount;
         useRowsCleaning = 1;
     }
