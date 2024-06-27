@@ -1,8 +1,10 @@
 #include <pthread.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <unistd.h>
+#include <string.h>
 #include "system.h"
 #include "log.h"
 #include "configurator.h"
@@ -10,7 +12,7 @@
 #include "modules/chips/i2c.h"
 #include "mqtt.h"
 
-//#define TEST_MODE
+#define TEST_MODE
 
 /// @brief Подключение модулей
 static I2C_Config connectionConfig = 
@@ -19,6 +21,21 @@ static I2C_Config connectionConfig =
     .frequencyHz = 100000,
     .readTimeoutMs = 100
 };
+
+// MOD: Системные названия типов плат (изменять количество элементов вместе с SYSTEM_BOARD_ENUM)
+static char* SYSTEM_BOARDS_NAMES[] = 
+{
+    "Unknown",
+    "NanoPi-NEO-Core",                  // NanoPi NEO Core (2)
+    "Raspberry Pi",                     // Raspberry Pi 2 - 5 (все версии)
+    "Raspberry Pi Compute Module 4",    // Название не проверено
+    "Orange Pi",                        // Название не проверено
+    "BIGTREETECH CB1"                   // Название не проверено
+    /*Количество названий должно совпадать с 
+    количеством перечисления SYSTEM_BOARD_ENUM*/
+};
+
+static SYSTEM_BOARD_ENUM board = SYSTEM_BOARD_UNKNOWN;  // Тип платы
 
 static I2C_Connection *connection;      // Подключение I2C
 
@@ -38,6 +55,61 @@ static int delayIndicationThreadUsec = 1000;    // Задержка в пото�
 static int delayModulesThreadUsec = 1000;       // Задержка в потоке опроса модулей (в микросекундах)
 static int delayMqttThreadUsec = 1000;          // Задержка в потоке обмена данными с MQTT (в микросекундах)
 
+
+
+/// @brief MOD: Получить наименование платы
+/// @param buffer Буффер для результата
+/// @return 
+static SYSTEM_BOARD_ENUM System_GetBoardLinux()
+{
+    SYSTEM_BOARD_ENUM result = SYSTEM_BOARD_UNKNOWN;
+    Log_Write("System: Getting board name...");
+
+    FILE *fp;
+    char buf[100];
+    fp = fopen("/sys/firmware/devicetree/base/model", "r");
+    if (fp == NULL) 
+    {
+        Log_Write("System: WARNING.Failed to open /sys/firmware/devicetree/base/model");
+
+        fp = fopen("/proc/device-tree/model", "r");
+        if (fp == NULL) 
+        {
+            Log_Write("System: WARNING. Failed to open /proc/device-tree/model");
+            Log_Write("System: Board name - Unknown");
+            return result;
+        }
+    }
+
+    if (fgets(buf, sizeof(buf), fp) != NULL)
+    {
+        // Удаление символа новой строки, если он присутствует
+        int len = strlen(buf);
+        if (len > 0 && buf[len - 1] == '\n') {
+            buf[len - 1] = '\0';
+        }
+    } 
+    else 
+    {
+        return result;
+    }
+
+    for (int i = 0; i < SYSTEM_BOARD_COUNT; i++)
+    {
+        if (strstr(buf, SYSTEM_BOARDS_NAMES[i]) != NULL)
+        {
+            board = (SYSTEM_BOARD_ENUM)i;
+            break;
+        }
+    }
+
+    Log_Write("System: Board name - %s (boardcode = %d)", buf, board);
+    fclose(fp);
+
+    return result;
+}
+
+
 // ***** Инициализация *****
 
 /// @brief Инициализировать данные системы
@@ -52,6 +124,15 @@ static int System_InitSystemData()
 
     // TODO: Инициализация данных системы и применение конфигурации к системе
     
+    
+    // Получить название платы
+#ifdef __linux__
+    board = System_GetBoardLinux();
+#else
+    board = SYSTEM_BOARD_UNKNOWN;
+#endif
+
+
     Log_Write("System: System data initialized.");
     result = 0;
     return result;
@@ -84,7 +165,7 @@ static int System_InitModules()
     int result = -1;
     Log_Write("System: Initializing modules...");
 
-    modulesCount = 0;    
+    modulesCount = 0;
     // TODO: Ready to test
     if (config.modules == NULL || config.modules_count <= 0)
     {
