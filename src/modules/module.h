@@ -73,13 +73,19 @@ typedef enum
     MODULE_PIN_MODE_OUTPUT
 } MODULE_PIN_MODE_ENUM;*/
 
+// Данные вывода модуля для чтения/записи (struct)
+typedef struct
+{
+    bool updated;               // Обновлено (флаг состояния "получено" для значения)
+    int value;                  // Значение ( <0 - значение не получено )
+} Module_PinData;
+
 // Вывод/ножка модуля (struct)
 typedef struct
 {
-    bool updated;               // Обновлено (флаг состояния значения)
-    bool read;                  // Прочитано (флаг для сброса обновления)
-    int number;                 // Номер вывода (на клеммнике)
-    int value;                  // Значение ( <0 - значение не получено )
+    bool inverted;              // Инверсия вывода
+    int number;                 // Номер вывода (модуля)
+    Module_PinData data;        // Данные для чтения/записи
 } Module_Pin;
 
 // Модуль ввода/вывода (struct)
@@ -87,11 +93,11 @@ typedef struct
 {
     bool inited;                            // Инициализация пройдена
     int i2cAddress;                         // Адрес I2C
-    int inputPinsCount;                     // Количество входов
-    int outputPinsCount;                    // Количество выходов
+    int inputsCount;                        // Количество входов
+    int outputsCount;                       // Количество выходов
     MODULE_STATE_ENUM state;                // Состояние
-    Module_Pin *inputPins;                  // Входы
-    Module_Pin *outputPins;                 // Выходы
+    Module_Pin *inputs;                     // Выводы входов
+    Module_Pin *outputs;                    // Выводы выходов
     Chip *chip;                             // Микросхема
     char *uniqueName;                       // Уникальное имя модуля (будет использоваться при формировании MQTT топика)
     char *name;                             // Пользовательское имя модуля
@@ -122,33 +128,20 @@ Module* Module_Create(Module_Config *config, I2C_Connection *connection);
 bool Module_Destroy(Module *module);
 
 
-/// @brief Прочитать вывод модуля
-/// @param pin Модуль
-/// @param number Вывод
-/// @return Результат: true - успешно; false - ошибка
-bool Module_ReadPin(Module *module, Module_Pin *pin);
-
 /// @brief Прочитать все выводы модуля
 /// @param readPins Модуль
 /// @return Результат: true - успешно; false - ошибка
-bool Module_ReadAllPins(Module *module);
-
-
-/// @brief Запиcать вывод модуля
-/// @param pin Модуль
-/// @param number Вывод
-/// @return Результат: true - успешно; false - ошибка
-bool Module_WritePin(Module *module, Module_Pin *pin);
+bool Module_ReadPins(Module *module);
 
 /// @brief Запиcать все выводы модуля
 /// @param writePins Модуль
 /// @return Результат: true - успешно; false - ошибка
-bool Module_WriteAllPins(Module *module);
+bool Module_WritePins(Module *module);
 
 
 /// @brief Проверить связь с модулем
 /// @param module Модуль
-/// @return Результат операции (Код ошибки), 0 - есть; -1 - нет
+/// @return Результат: true - успешно; false - ошибка
 bool Module_CheckConnection(Module *module);
 
 /// @brief Отобразить данные модуля
