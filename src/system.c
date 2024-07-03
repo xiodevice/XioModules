@@ -17,7 +17,7 @@
 /// @brief Подключение модулей
 static I2C_Config connectionConfig = 
 {
-    .busNumber = 0,
+     .busNumber = 0,
     .frequencyHz = 100000,
     .readTimeoutMs = 100
 };
