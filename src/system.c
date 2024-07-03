@@ -17,7 +17,7 @@
 /// @brief Подключение модулей
 static I2C_Config connectionConfig = 
 {
-    .unitNumber = 0,
+    .busNumber = 0,
     .frequencyHz = 100000,
     .readTimeoutMs = 100
 };
@@ -35,6 +35,9 @@ static char* SYSTEM_BOARDS_NAMES[] =
     количеством перечисления SYSTEM_BOARD_ENUM*/
 };
 
+static const char *GET_BOARD_NAME_PATH = "/sys/firmware/devicetree/base/model"; // Путь к данным об плате
+static const char *GET_BOARD_NAME_PATH_ALT = "/proc/device-tree/model";         // Путь к данным об плате (альтернативный)
+
 static SYSTEM_BOARD_ENUM board = SYSTEM_BOARD_UNKNOWN;  // Тип платы
 
 static I2C_Connection *connection;      // Подключение I2C
@@ -51,32 +54,35 @@ static int indicationThreadToRun = 1;   // Флаг для завершения 
 static int modulesThreadToRun = 1;      // Флаг для завершения потока опроса модулей
 static int mqttThreadToRun = 1;         // Флаг для завершения потока обмена данными с MQTT
 
-static int delayIndicationThreadUsec = 1000;    // Задержка в потоке индикации (в микросекундах)
-static int delayModulesThreadUsec = 1000;       // Задержка в потоке опроса модулей (в микросекундах)
-static int delayMqttThreadUsec = 1000;          // Задержка в потоке обмена данными с MQTT (в микросекундах)
-
+static const int delayIndicationThreadUsec = 1000;    // Задержка в потоке индикации (в микросекундах)
+static const int delayModulesThreadUsec = 1000;       // Задержка в потоке опроса модулей (в микросекундах)
+static const int delayMqttThreadUsec = 1000;          // Задержка в потоке обмена данными с MQTT (в микросекундах)
 
 
 /// @brief MOD: Получить наименование платы
 /// @param buffer Буффер для результата
-/// @return 
-static SYSTEM_BOARD_ENUM System_GetBoardLinux()
+/// @return Наименование платы (Enum)
+static SYSTEM_BOARD_ENUM System_GetBoard()
 {
     SYSTEM_BOARD_ENUM result = SYSTEM_BOARD_UNKNOWN;
     Log_Write("System: Getting board name...");
 
+#ifndef __linux__
+    Log_Write("System: WARNING. Faild to get board name on Windows platform");
+    return result;
+#endif
+
     FILE *fp;
     char buf[100];
-    fp = fopen("/sys/firmware/devicetree/base/model", "r");
+    fp = fopen(GET_BOARD_NAME_PATH, "r");
     if (fp == NULL) 
     {
-        Log_Write("System: WARNING.Failed to open /sys/firmware/devicetree/base/model");
+        Log_Write("System: WARNING. Failed to open %s", GET_BOARD_NAME_PATH);
 
-        fp = fopen("/proc/device-tree/model", "r");
+        fp = fopen(GET_BOARD_NAME_PATH_ALT, "r");
         if (fp == NULL) 
         {
-            Log_Write("System: WARNING. Failed to open /proc/device-tree/model");
-            Log_Write("System: Board name - Unknown");
+            Log_Write("System: WARNING. Failed to open %s", GET_BOARD_NAME_PATH_ALT);
             return result;
         }
     }
@@ -108,7 +114,7 @@ static SYSTEM_BOARD_ENUM System_GetBoardLinux()
 
     return result;
 }
-
+ 
 
 // ***** Инициализация *****
 
@@ -125,13 +131,12 @@ static int System_InitSystemData()
     // TODO: Инициализация данных системы и применение конфигурации к системе
     
     
-    // Получить название платы
+    // Получить наименование платы
 #ifdef __linux__
-    board = System_GetBoardLinux();
+    board = System_GetBoard();
 #else
     board = SYSTEM_BOARD_UNKNOWN;
 #endif
-
 
     Log_Write("System: System data initialized.");
     result = 0;
@@ -189,11 +194,13 @@ static int System_InitModules()
     // Создать I2C подключение    
     Log_Write("System: Creating I2C connection...");
     connection = I2C_CreateConnection(&connectionConfig);
+
 #ifndef __linux__ 
     // TEMP: Создание эмуляции подключения для пропуска ошибки на Windows
     connection = calloc(1, sizeof(I2C_Connection));
     Log_Write("System: WARNING. TEST MODE. DO NOT USE IN PRODUCTION. I2C connection created.");
 #endif
+
     if (connection == NULL)
     {
         Log_Write("System: ERROR. Failed to create I2C connection!");
@@ -226,7 +233,7 @@ static int System_InitModules()
             };
 
             Module *module = Module_Create(&mConfig, connection);
-            // XXX: Ост 10.06.2024 16:30
+            
             if (module != NULL)
             {
                 // Добавить модуль в систему
@@ -289,15 +296,14 @@ static void* System_ModulesPolling_ThreadHandler(void *args)
         for (int i = 0; i < modulesCount; i++)
         {
             // Чтение всех выводов модуля
-            Module_ReadAllPins(modules[i]);
+            Module_ReadPins(modules[i]);
 
             // Запись всех выводов модуля
-            Module_WriteAllPins(modules[i]);
+            Module_WritePins(modules[i]);
 
             // Засыпаем
             usleep(delayModulesThreadUsec);
-        }
-        
+        }        
     }
 
     return EXIT_SUCCESS;
