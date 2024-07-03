@@ -23,14 +23,26 @@ typedef enum
     CHIP_NAME_XXX
 } CHIP_NAME_ENUM;
 
+
+
+/// @brief Данные вывода чипа
+typedef struct
+{
+    bool updated;               // Обновлено (флаг состояния "прочитаны/записаны" значения)
+    int number;                 // Номер вывода чипа
+    int value;                  // Значение (< 0 - значение не получено)
+} Chip_PinData;
+
 /// @brief Чип
 typedef struct
 {
-    int address;                    // Адрес
-    CHIP_NAME_ENUM name;            // Наименование
-    I2C_Connection *connection;     // Подключение по I2C    
-    int (*ReadPin)(int);            // Функция считывания. Params: number - номер вывода, return: считанное значение (в случае ошибки значение < 0)
-    int (*WritePin)(int, int);      // Функция записи. Params: number - номер вывода, value - значение. return: 0 - успех, -1 - ошибка
+    int address;                                                // Адрес
+    int pinsCount;                                              // Количество выводов
+    CHIP_NAME_ENUM name;                                        // Наименование
+    I2C_Connection *connection;                                 // Подключение по I2C
+    Chip_PinData *pinsData;                                     // Выводы
+    bool (*ReadPins)(I2C_Connection *connection, int address, Chip_PinData *pinsData, int pinsCount);    // Функция считывания выводов. return: true - успех, false - ошибка.
+    bool (*WritePins)(I2C_Connection *connection, int address, Chip_PinData *pinsData, int pinsCount);   // Функция записи выводов. return: true - успех, false - ошибка
 } Chip;
 
 #endif
