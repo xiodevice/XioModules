@@ -11,8 +11,8 @@
 // Конфигурация I2C
 typedef struct
 {
-    uint8_t unitNumber;         // Номер шины в системе
-    int frequencyHz;              // Частота, Гц
+    uint8_t busNumber;          // Номер шины в системе
+    int frequencyHz;            // Частота, Гц
     int readTimeoutMs;          // Таймаут при чтении, мс
 } I2C_Config;
 
