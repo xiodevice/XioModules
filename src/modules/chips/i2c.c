@@ -146,7 +146,7 @@ I2C_Connection* I2C_CreateConnection(I2C_Config *config)
     connection->opened = false;
 
     // Открытие устройства на шине
-    connection->fd = open(I2C_LINUX_DEVICES[config->unitNumber], O_RDWR);
+    connection->fd = open(I2C_LINUX_DEVICES[config->busNumber], O_RDWR);
     if (connection->fd < 0)
     {
         Log_Write("I2C: ERROR. Failed to open I2C bus! It may be missing, unavailable or busy!");
