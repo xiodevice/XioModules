@@ -46,29 +46,61 @@
     }
     },
     {
-    "name": "Debug C (Remote Linux)",
+    "name": "Debug C (Remote Linux-Linux)",
     "type": "cppdbg",
     "request": "launch",
-    "program": "${workspaceFolder}/main.exe",
+    "program": "${workspaceFolder}/main",
     "miDebuggerServerAddress": "192.168.10.92:1234",
     "miDebuggerPath": "/usr/bin/gdb-multiarch",
+    "targetArchitecture": "arm",
     "args": [],
-    "stopAtEntry": true,    
+    "stopAtEntry": true,
     "cwd": "${workspaceFolder}",
     "environment": [],
-    "MIMode": "gdb",    
+    "MIMode": "gdb",
     "setupCommands": [    
-    {    
-    "description": "Enable pretty-printing for gdb",    
-    "text": "-enable-pretty-printing",    
-    "ignoreFailures": true
-    }    
+    {
+        "description": "Connect to remote gdbserver",
+        "text": "target remote 192.168.10.92:1234"
+    }
     ],
     "externalConsole": false,
     "logging": {
     "engineLogging": true,
     "traceResponse": true,
-    "trace": true
+    "trace": true,
+    "sourceFileMap": {
+                "/root/csh-np": "${workspaceFolder}"
+    }
+    }  
+    },
+    {
+    "name": "Debug C (Remote Windows-Linux)",
+    "type": "cppdbg",
+    "request": "launch",
+    "program": "${workspaceFolder}\\main.exe",
+    "miDebuggerServerAddress": "192.168.10.92:1234",
+    "miDebuggerPath": "C:\\msys64\\mingw64\\bin\\gdb-multiarch.exe",
+    "targetArchitecture": "arm",
+    "args": [],
+    "stopAtEntry": true,
+    "cwd": "${workspaceFolder}",
+    "environment": [],
+    "MIMode": "gdb",
+    "setupCommands": [    
+    {
+        "description": "Connect to remote gdbserver",
+        "text": "target remote 192.168.10.92:1234"
+    }
+    ],
+    "externalConsole": false,
+    "logging": {
+    "engineLogging": true,
+    "traceResponse": true,
+    "trace": true,
+    "sourceFileMap": {
+                "/root/csh-np": "${workspaceFolder}"
+    }
     }  
     }    
     ]    
