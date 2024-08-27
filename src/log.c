@@ -172,7 +172,9 @@ void Log_Write(const char* message, ...)
 #endif
 
     va_list args;
+    va_list args_copy;
     va_start(args, message);
+    va_copy(args_copy, args);
 
     time_t timer = time(NULL);                  // Текущее время в тиках
     const struct tm* t = localtime(&timer);     // Текущее время в нормальном формате
@@ -212,12 +214,13 @@ void Log_Write(const char* message, ...)
     }
     
     if (enableTerminalOutput)
-    {
+    {        
         printf("%02d.%02d.%d %02d:%02d:%02d: ", t->tm_mday, t->tm_mon+1, t->tm_year+1900, t->tm_hour, t->tm_min, t->tm_sec);
-        vprintf(message, args);
+        vprintf(message, args_copy);
         printf("\n");
-    }
+    }    
     
+    va_end(args_copy);
     va_end(args);
     
     if (logFile != NULL)

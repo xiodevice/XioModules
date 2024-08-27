@@ -45,7 +45,7 @@
     "trace": true
     }
     },
-    {    
+    {
     "name": "Debug C (Remote Linux)",
     "type": "cppdbg",
     "request": "launch",

@@ -192,10 +192,10 @@ bool I2C_DestroyConnection(I2C_Connection *connection)
     {
         if (connection->opened)
         {
-            close(connection->fd);            
+            close(connection->fd);
+            free(connection);
+            connection = NULL;
         }
-        free(connection);
-        connection = NULL;
     }
 
     result = true;
