@@ -123,7 +123,7 @@ Chip* Pcf8574Chip_Create(I2C_Connection *connection, int address)
     Chip* chip = calloc(1, sizeof(Chip));
     if (chip == NULL)
     {
-        Log_Write("PCF8574: ERROR. Failed to allocate memory for chip!");
+        LOG(LL_ERROR, ("PCF8574: ERROR. Failed to allocate memory for chip!"));
         return chip;
     }
 
@@ -136,7 +136,7 @@ Chip* Pcf8574Chip_Create(I2C_Connection *connection, int address)
     chip->pinsData = (Chip_PinData*)calloc(chip->pinsCount, sizeof(Chip_PinData));
     if (chip->pinsData == NULL)
     {
-        Log_Write("PCF8574: ERROR. Failed to allocate memory for pins!");
+        LOG(LL_ERROR, ("PCF8574: ERROR. Failed to allocate memory for pins!"));
         free(chip);
         chip = NULL;
         return chip;

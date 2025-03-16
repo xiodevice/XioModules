@@ -29,7 +29,7 @@ Module* Module_Create(Module_Config *config, I2C_Connection *connection)
             module = MDI8Module_Create(config, connection, MDI8_MODULE_CHIP_PCF8574);
             if (module == NULL)
             {
-                Log_Write("Module: ERROR. Failed to create module MDI8 (%s)!", config->name);
+                LOG(LL_ERROR, ("Module: ERROR. Failed to create module MDI8 (%s)!", config->name));
             }
 
             break;
@@ -46,7 +46,7 @@ Module* Module_Create(Module_Config *config, I2C_Connection *connection)
             module = MDO8R1Module_Create(config, connection, MODULE_NAME_MDO8R1_PCF8574);
             if (module == NULL)
             {
-                Log_Write("Module: ERROR. Failed to create module MDO8R1 (%s)!", config->name);
+                LOG(LL_ERROR, ("Module: ERROR. Failed to create module MDO8R1 (%s)!", config->name));
             }
 
             break;
@@ -80,7 +80,7 @@ Module* Module_Create(Module_Config *config, I2C_Connection *connection)
         }
         default:
         {
-            Log_Write("Module: ERROR. Unknown code (%d) for module (%s)!", config->code, config->name);
+            LOG(LL_ERROR, ("Module: ERROR. Unknown code (%d) for module (%s)!", config->code, config->name));
             break;
         }
     }
@@ -218,91 +218,91 @@ void Module_ShowData(Module *module)
     if (module == NULL)
         return;
 
-    Log_Write("Module: Module <%s> information: name = %s, description = %s, inited = %d, i2cAddress = 0x%02X (%d)", 
+    LOG(LL_INFO, ("Module: Module <%s> information: name = %s, description = %s, inited = %d, i2cAddress = 0x%02X (%d)", 
         module->uniqueName, module->name == NULL ? "" : module->name, module->description == NULL ? "" : module->description, 
-        module->inited, module->i2cAddress, module->i2cAddress);
+        module->inited, module->i2cAddress, module->i2cAddress));
 
-    Log_Write("Module: <%s> inputs count = %d:", module->uniqueName, module->inputsCount);
+    LOG(LL_INFO, ("Module: <%s> inputs count = %d:", module->uniqueName, module->inputsCount));
     if (module->inputs != NULL)
     {
         for (int i = 0; i < module->inputsCount; i++)
         {
-            Log_Write("Module: <%s> input %d: number = %d, inverted = %d, value = %d", module->uniqueName, i, module->inputs[i].number, module->inputs[i].inverted, module->inputs[i].data.value);
+            LOG(LL_INFO, ("Module: <%s> input %d: number = %d, inverted = %d, value = %d", module->uniqueName, i, module->inputs[i].number, module->inputs[i].inverted, module->inputs[i].data.value));
         }
     }
     else
     {
-        Log_Write("Module: WARNING. <%s> inputs = NULL!", module->uniqueName);
+        LOG(LL_INFO, ("Module: WARNING. <%s> inputs = NULL!", module->uniqueName));
     }
 
-    Log_Write("Module: <%s> outputs count = %d:", module->uniqueName, module->outputsCount);
+    LOG(LL_INFO, ("Module: <%s> outputs count = %d:", module->uniqueName, module->outputsCount));
     if (module->outputs != NULL)
     {
         for (int i = 0; i < module->outputsCount; i++)
         {
-            Log_Write("Module: <%s> output %d: number = %d, inverted = %d, value = %d", module->uniqueName, i, module->outputs[i].number, module->outputs[i].inverted, module->outputs[i].data.value);
+            LOG(LL_INFO, ("Module: <%s> output %d: number = %d, inverted = %d, value = %d", module->uniqueName, i, module->outputs[i].number, module->outputs[i].inverted, module->outputs[i].data.value));
         }
     }
     else
     {
-        Log_Write("Module: WARNING. <%s> outputs = NULL!", module->uniqueName);
+        LOG(LL_INFO, ("Module: WARNING. <%s> outputs = NULL!", module->uniqueName));
     }
 
     if (module->chip != NULL)
     {
-        Log_Write("Module: <%s> chip info: address = 0x%02X (%d), name = %d", 
-        module->uniqueName, module->chip->address, module->chip->address, module->chip->name);
-        Log_Write("Module: <%s> chip pins count = %d:", module->uniqueName, module->chip->pinsCount);
+        LOG(LL_INFO, ("Module: <%s> chip info: address = 0x%02X (%d), name = %d", 
+        module->uniqueName, module->chip->address, module->chip->address, module->chip->name));
+        LOG(LL_INFO, ("Module: <%s> chip pins count = %d:", module->uniqueName, module->chip->pinsCount));
         if (module->chip->pinsData != NULL)
         {
             for (int i = 0; i < module->chip->pinsCount; i++)
             {
-                Log_Write("Module: <%s> chip pin %d: number = %d, value = %d", module->uniqueName, i, module->chip->pinsData[i].number, module->chip->pinsData[i].value);
+                LOG(LL_INFO, ("Module: <%s> chip pin %d: number = %d, value = %d", module->uniqueName, i, module->chip->pinsData[i].number, module->chip->pinsData[i].value));
             }
         }
         else
         {
-            Log_Write("Module: WARNING. <%s> chip pinsData = NULL!", module->uniqueName);
+            LOG(LL_INFO, ("Module: WARNING. <%s> chip pinsData = NULL!", module->uniqueName));
         }
 
         if (module->chip->connection != NULL)
         {
             if (module->chip->connection->config != NULL)
             {
-                Log_Write("Module: <%s> chip I2C connection info: busNumber = %d, frequency = %d Hz, readTimeout = %d Ms",
+                LOG(LL_INFO, ("Module: <%s> chip I2C connection info: busNumber = %d, frequency = %d Hz, readTimeout = %d Ms",
                     module->uniqueName, module->chip->connection->config->busNumber, 
-                    module->chip->connection->config->frequencyHz, module->chip->connection->config->readTimeoutMs);
+                    module->chip->connection->config->frequencyHz, module->chip->connection->config->readTimeoutMs));
             }                
             else
             {
-                Log_Write("Module: WARNING. <%s> chip I2C connection config = NULL!", module->uniqueName);
+                LOG(LL_INFO, ("Module: WARNING. <%s> chip I2C connection config = NULL!", module->uniqueName));
             }                
         }
         else
         {
-            Log_Write("Module: WARNING. <%s> chip I2C connection = NULL!", module->uniqueName);
+            LOG(LL_INFO, ("Module: WARNING. <%s> chip I2C connection = NULL!", module->uniqueName));
         }
 
         if (module->chip->ReadPins != NULL)
         {
-            Log_Write("Module: <%s> chip ReadPins() function inited:", module->uniqueName);
+            LOG(LL_INFO, ("Module: <%s> chip ReadPins() function inited:", module->uniqueName));
         }
         else
         {
-            Log_Write("Module: WARNING. <%s> chip ReadPins() = NULL!", module->uniqueName);
+            LOG(LL_INFO, ("Module: WARNING. <%s> chip ReadPins() = NULL!", module->uniqueName));
         }
 
         if (module->chip->WritePins != NULL)
         {
-            Log_Write("Module: <%s> chip WritePins() function inited:", module->uniqueName);
+            LOG(LL_INFO, ("Module: <%s> chip WritePins() function inited:", module->uniqueName));
         }
         else
         {
-            Log_Write("Module: WARNING. <%s> chip WritePins() = NULL!", module->uniqueName);
+            LOG(LL_INFO, ("Module: WARNING. <%s> chip WritePins() = NULL!", module->uniqueName));
         }
     }
     else
     {
-        Log_Write("Module: WARNING. <%s> chip = NULL", module->uniqueName);
+        LOG(LL_INFO, ("Module: WARNING. <%s> chip = NULL", module->uniqueName));
     }    
 }

@@ -12,6 +12,7 @@ static pthread_mutex_t logWriteMutex;
 
 #endif
 
+static LOG_LEVEL logLevel = LL_INFO;    // Уровень логирования (по умолчанию - INFO)
 static bool useRowsCleaning = 0;        // Использовать максимальное количество строк
 static bool enableTerminalOutput = 1;   // Вывод в терминал включен (1) или выключен (0)
 static bool inited = 0;                 // Проинициализирован
@@ -34,7 +35,7 @@ static int Log_RemoveLogFileRowsFromBeginning(int rowsCount)
     FILE* file = fopen(fileName, "r");
     if (file == NULL)
     {
-        Log_Write("Log: ERROR. Failed to open log file!");
+        LOG(LL_ERROR, ("Log: ERROR. Failed to open log file!"));
         return result;
     }
 
@@ -43,7 +44,7 @@ static int Log_RemoveLogFileRowsFromBeginning(int rowsCount)
     FILE* fileTemp = fopen(LOG_TEMP_FILE_NAME, "w");
     if (fileTemp == NULL)
     {
-        Log_Write("Log: ERROR. Failed to create or open temp log file!");
+        LOG(LL_ERROR, ("Log: ERROR. Failed to create or open temp log file!"));
         fclose(file);
         return result;
     }
@@ -67,12 +68,12 @@ static int Log_RemoveLogFileRowsFromBeginning(int rowsCount)
 
     if (remove(fileName) < 0)
     {
-        Log_Write("Log: ERROR. Failed to remove old log file!");
+        LOG(LL_ERROR, ("Log: ERROR. Failed to remove old log file!"));
     }
 
     if (rename(LOG_TEMP_FILE_NAME, fileName) < 0)
     {
-        Log_Write("Log: ERROR. Failed to rename temp log file!");
+        LOG(LL_ERROR, ("Log: ERROR. Failed to rename temp log file!"));
     }
     
     return result;
@@ -87,7 +88,7 @@ static int Log_GetFileRowsCount()
     FILE* file = fopen(fileName, "r");
     if (file == NULL)
     {
-        Log_Write("Log: ERROR. Failed to open log file!");
+        LOG(LL_ERROR, ("Log: ERROR. Failed to open log file!"));
         return -1;
     }
     
@@ -138,6 +139,21 @@ void Log_SetNewFileName(char* logFileName)
     fileName = logFileName;
 }
 
+void Log_SetLogLevel(LOG_LEVEL level)
+{
+    logLevel = level;
+}
+
+int Log_CheckLogLevel(LOG_LEVEL level)
+{
+    int result = 0;
+
+    if (level <= logLevel)
+        result = 1;
+
+    return result;
+}
+
 void Log_UseRowsCleaning(int minCount, int maxCount)
 {
     if (minCount >= 0)
@@ -159,11 +175,87 @@ void Log_EnableTerminalOutput(char enable)
     enableTerminalOutput = enable;
 }
 
-void Log_Write(const char* message, ...)
+void Log_Write(LOG_LEVEL level, const char* message, ...)
 {
     if (!inited)
     {
-        printf("Log: WARNING. Log file not inited! It can't be written\n");
+        printf("Log: ERROR. Log file not inited! Maybe it can't be written\n");
+        //return;
+    }
+
+#ifdef LOG_MULTITHREAD_MODE
+    pthread_mutex_lock(&logWriteMutex);
+#endif
+
+    va_list args;
+    va_list args_copy;
+    va_start(args, message);
+    va_copy(args_copy, args);
+
+    time_t timer = time(NULL);                  // Текущее время в тиках
+    const struct tm* t = localtime(&timer);     // Текущее время в нормальном формате
+
+    FILE* logFile = NULL;
+
+    if (inited)
+    {
+        if (useRowsCleaning && inited)
+        {
+            if (logFileRowsCount >= rowsMaxCount)
+            {
+                int rowsToRemove = logFileRowsCount - rowsMinCount;
+                if (rowsToRemove >= 0)
+                {
+                    int removeRes = Log_RemoveLogFileRowsFromBeginning(rowsToRemove);
+                    if (removeRes > 0)
+                        logFileRowsCount = rowsMinCount;
+                }
+            }
+        }
+
+        if (level <= logLevel)
+        {
+            logFile = fopen(fileName, "a");
+            if (logFile == NULL)
+            {
+                printf("Log: ERROR. Faild to open log file to write log data!\n");
+            }
+            else
+            {
+                fprintf(logFile, "%02d.%02d.%d %02d:%02d:%02d: ", t->tm_mday, t->tm_mon+1, t->tm_year+1900, t->tm_hour, t->tm_min, t->tm_sec);
+                vfprintf(logFile, message, args);
+                fprintf(logFile, "\n");
+                logFileRowsCount++;
+            }
+        }        
+    }
+    
+    if (enableTerminalOutput)
+    {
+        if (level <= logLevel)
+        {
+            printf("%02d.%02d.%d %02d:%02d:%02d: ", t->tm_mday, t->tm_mon+1, t->tm_year+1900, t->tm_hour, t->tm_min, t->tm_sec);
+            vprintf(message, args_copy);
+            printf("\n");
+        }
+    }
+    
+    va_end(args_copy);
+    va_end(args);
+    
+    if (logFile != NULL)
+        fclose(logFile);
+
+#ifdef LOG_MULTITHREAD_MODE
+    pthread_mutex_unlock(&logWriteMutex);
+#endif
+}
+
+void Log_WriteMessage_DontUseDirectly(const char* message, ...)
+{
+    if (!inited)
+    {
+        printf("Log: ERROR. Log file not inited! Maybe it can't be written\n");
         //return;
     }
 
@@ -200,25 +292,23 @@ void Log_Write(const char* message, ...)
         logFile = fopen(fileName, "a");
         if (logFile == NULL)
         {
-            printf("Log: WARNING. Faild to open log file to write log data!\n");
-            //return;
+            printf("Log: ERROR. Faild to open log file to write log data!\n");
         }
-
-        if (logFile != NULL)
+        else
         {
             fprintf(logFile, "%02d.%02d.%d %02d:%02d:%02d: ", t->tm_mday, t->tm_mon+1, t->tm_year+1900, t->tm_hour, t->tm_min, t->tm_sec);
             vfprintf(logFile, message, args);
             fprintf(logFile, "\n");
             logFileRowsCount++;
-        }
+        }      
     }
     
     if (enableTerminalOutput)
-    {        
+    {
         printf("%02d.%02d.%d %02d:%02d:%02d: ", t->tm_mday, t->tm_mon+1, t->tm_year+1900, t->tm_hour, t->tm_min, t->tm_sec);
         vprintf(message, args_copy);
         printf("\n");
-    }    
+    }
     
     va_end(args_copy);
     va_end(args);

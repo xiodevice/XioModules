@@ -7,10 +7,10 @@
 /// @param signal Сигнал прерывания
 void SignalInterruptHadler(int signal)
 {
-    Log_Write("SERVICE ABORTED!");
+    LOG(LL_INFO, ("SERVICE ABORTED!"));
     System_Stop();    
-    Log_Write("SERVICE COMPLITION...");
-    Log_Write("SERVICE STOPPED");
+    LOG(LL_INFO, ("SERVICE COMPLITION..."));
+    LOG(LL_INFO, ("SERVICE STOPPED"));
     exit(EXIT_SUCCESS);
 }
 
@@ -21,7 +21,7 @@ int main(int args, char **argv)
     // Инициализировать Log
     Log_Init();
 
-    Log_Write("SERVICE STARTING...");
+    LOG(LL_INFO, ("SERVICE STARTING..."));
 
     // Инициализировать внешнее прерывание (Ctrl+C) из ОС
     signal(SIGINT, SignalInterruptHadler);
@@ -45,7 +45,7 @@ int main(int args, char **argv)
     }    
     
     System_Stop();
-    Log_Write("SERVICE COMPLITION...");
-    Log_Write("SERVICE STOPPED");
+    LOG(LL_INFO, ("SERVICE COMPLITION..."));
+    LOG(LL_INFO, ("SERVICE STOPPED"));
     return result;
 } 

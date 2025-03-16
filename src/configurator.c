@@ -87,7 +87,7 @@ static void ParseJsonModulesArrayToConfig(const char *str, int len, void *user_d
 
     if (cfg->modules == NULL)
     {
-        Log_Write("Configurator: ERROR. Failed to allocate memory for modules!");
+        LOG(LL_ERROR, ("Configurator: ERROR. Failed to allocate memory for modules!"));
         return;
     }
 
@@ -112,31 +112,31 @@ static void ParseJsonModulesArrayToConfig(const char *str, int len, void *user_d
         if (json_scanf(t.ptr, t.len, "{code: %d}", &cfg->modules[i].code) <= 0)
         {
             inited = 0;
-            Log_Write("Configurator: ERROR. There is no or invalid parameter <code> for (index %d) module!", i);
+            LOG(LL_ERROR, ("Configurator: ERROR. There is no or invalid parameter <code> for (index %d) module!", i));
         }
 
         if (json_scanf(t.ptr, t.len, "{address: %d}", &cfg->modules[i].address) <= 0)
         {
             inited = 0;
-            Log_Write("Configurator: ERROR. There is no or invalid parameter <address> for (index %d) module!", i);
+            LOG(LL_ERROR, ("Configurator: ERROR. There is no or invalid parameter <address> for (index %d) module!", i));
         }
         
         if (json_scanf(t.ptr, t.len, "{uniqueName: %Q}", &cfg->modules[i].uniqueName) <= 0)
         {
             inited = 0;
-            Log_Write("Configurator: ERROR. There is no or invalid parameter <uniqueName> for (index %d) module!", i);
+            LOG(LL_ERROR, ("Configurator: ERROR. There is no or invalid parameter <uniqueName> for (index %d) module!", i));
         }
         
         if (json_scanf(t.ptr, t.len, "{name: %Q}", &cfg->modules[i].name) <= 0)
         {
             inited = 0;
-            Log_Write("Configurator: ERROR. There is no or invalid parameter <name> for (index %d) module!", i);
+            LOG(LL_ERROR, ("Configurator: ERROR. There is no or invalid parameter <name> for (index %d) module!", i));
         }
         
         if (json_scanf(t.ptr, t.len, "{description: %Q}", &cfg->modules[i].description) <= 0)
         {
             inited = 0;
-            Log_Write("Configurator: WARNING. There is no or invalid parameter <description> for (index %d) module!", i);
+            LOG(LL_WARN, ("Configurator: WARNING. There is no or invalid parameter <description> for (index %d) module!", i));
         }
         
         if (!inited)
@@ -164,7 +164,7 @@ static int ReadConfigFromFile(Config* configOut)
 
     if (content == NULL)
     {
-        Log_Write("Configurator: ERROR. Failed to read config from file!");
+        LOG(LL_ERROR, ("Configurator: ERROR. Failed to read config from file!"));
         return result;
     }
 
@@ -183,7 +183,7 @@ static int ReadConfigFromFile(Config* configOut)
 
     if (configOut->modules_count <= 0)
     {
-        Log_Write("Configurator: ERROR. There are no modules data in config file or it contains errors!");
+        LOG(LL_ERROR, ("Configurator: ERROR. There are no modules data in config file or it contains errors!"));
     }
 
     result = 0;
@@ -200,7 +200,7 @@ static int CheckConfigFile()
     char *content = json_fread(fileName);
     if (content == NULL)
     {
-        Log_Write("Configurator: ERROR. Config file %s is empty!", fileName);
+        LOG(LL_ERROR, ("Configurator: ERROR. Config file %s is empty!", fileName));
         result = 0;
     }
     else
@@ -208,7 +208,7 @@ static int CheckConfigFile()
         int res = json_prettify_file(fileName);
         if (res <= 0)
         {
-            Log_Write("Configurator: ERROR. Config file %s contains errors!", fileName);
+            LOG(LL_ERROR, ("Configurator: ERROR. Config file %s contains errors!", fileName));
             result = -1;
         }
         else
@@ -235,7 +235,7 @@ static int InitDefaultConfigModulesData(Config* configDefault)
     configDefault->modules = malloc(sizeof(Config_Module) * configDefault->modules_count);
     if (configDefault->modules == NULL)
     {
-        Log_Write("Configurator: ERROR. Failed to allocate modules array");
+        LOG(LL_ERROR, ("Configurator: ERROR. Failed to allocate modules array"));
         return result;
     }
 
@@ -282,7 +282,7 @@ static int PrintConfigModulesArray(struct json_out *out, va_list *ap)
 
         if (fillResult < 0)
         {
-            Log_Write("Configurator: ERROR. Failed to print modules array to config file!");
+            LOG(LL_ERROR, ("Configurator: ERROR. Failed to print modules array to config file!"));
             return result;
         }
         json_printf(out, ",");
@@ -323,7 +323,7 @@ static int WriteConfigFile(Config *config)
     
     if (fillResult < 0)
     {
-        Log_Write("Configurator: ERROR. Failed to write config file!");
+        LOG(LL_ERROR, ("Configurator: ERROR. Failed to write config file!"));
         return result;
     }
 
@@ -343,7 +343,7 @@ static int CreateNewConfigFile()
     int createResult = json_fprintf(fileName, "");
     if (createResult < 0)
     {
-        Log_Write("Configurator: ERROR. Failed to creat and open config file!");
+        LOG(LL_ERROR, ("Configurator: ERROR. Failed to creat and open config file!"));
         return 1;
     } 
 
@@ -357,7 +357,7 @@ static int CreateNewConfigFile()
 int Config_Init(char* configFileName)
 {
     int result = -1;
-    Log_Write("Configurator: Config initialization...");
+    LOG(LL_INFO, ("Configurator: Config initialization..."));
 
     if (configFileName == NULL)
     {
@@ -372,8 +372,8 @@ int Config_Init(char* configFileName)
     int fileExist = access(fileName, F_OK);
     if (fileExist == -1)
     {
-        Log_Write("Configurator: ERROR. Config file %s doesn't exist!", fileName);        
-        Log_Write("Configurator: Trying to create config file %s...", fileName);
+        LOG(LL_ERROR, ("Configurator: ERROR. Config file %s doesn't exist!", fileName));        
+        LOG(LL_INFO, ("Configurator: Trying to create config file %s...", fileName));
 
         // Создание нового файла конфигурации со значениями по умолчанию
         int createResult = CreateNewConfigFile();
@@ -382,12 +382,12 @@ int Config_Init(char* configFileName)
             return result;
         }
 
-        Log_Write("Configurator: Config file created");
+        LOG(LL_INFO, ("Configurator: Config file created"));
 
         InitDefaultConfigModulesData(&configDefault);
 
         // Заполнение нового файла конфигурации значениями по умолчанию
-        Log_Write("Configurator: Default config writing...");
+        LOG(LL_INFO, ("Configurator: Default config writing..."));
 
         int fillResult = WriteConfigFile(&configDefault);
         if (fillResult < 0)
@@ -395,11 +395,11 @@ int Config_Init(char* configFileName)
             return result;
         }
         
-        Log_Write("Configurator: Default config is written");
+        LOG(LL_INFO, ("Configurator: Default config is written"));
     }
     else
     {
-        Log_Write("Configurator: Checking config file %s...", fileName);
+        LOG(LL_INFO, ("Configurator: Checking config file %s...", fileName));
         int checkResult = CheckConfigFile();
         if (checkResult == 0)
         {
@@ -407,7 +407,7 @@ int Config_Init(char* configFileName)
             InitDefaultConfigModulesData(&configDefault);
 
             // Заполнение файла конфигурации значениями по умолчанию
-            Log_Write("Configurator: Default config writing...");
+            LOG(LL_INFO, ("Configurator: Default config writing..."));
 
             int fillResult = WriteConfigFile(&configDefault);
             if (fillResult < 0)
@@ -415,7 +415,7 @@ int Config_Init(char* configFileName)
                 return result;
             }
             
-            Log_Write("Configurator: Default config is written");
+            LOG(LL_INFO, ("Configurator: Default config is written"));
         }
         else if (checkResult == -1)
         {
@@ -423,7 +423,7 @@ int Config_Init(char* configFileName)
         }
     }
 
-    Log_Write("Configurator: Config initialized");
+    LOG(LL_INFO, ("Configurator: Config initialized"));
 
     result = 0;
     return result;
@@ -438,11 +438,11 @@ int Config_Read(Config *config)
     int fileExist = access(fileName, F_OK);
     if (fileExist == -1)
     {
-        Log_Write("Configurator: WARNING. Config file doesn't exist! Will be used default config");
+        LOG(LL_WARN, ("Configurator: WARNING. Config file doesn't exist! Will be used default config"));
         *config = configDefault;
     }
 
-    Log_Write("Configurator: Config reading...");
+    LOG(LL_INFO, ("Configurator: Config reading..."));
     
     // Заполнение параметрами из файла конфигурации
     int readResult = ReadConfigFromFile(config);
@@ -451,7 +451,7 @@ int Config_Read(Config *config)
         return result;
     }
 
-    Log_Write("Configurator: Config is read");
+    LOG(LL_INFO, ("Configurator: Config is read"));
 
     result = 0;
     return result;
@@ -469,8 +469,8 @@ int Config_Write(Config *config)
     int fileExist = access(fileName, F_OK);
     if (fileExist == -1)
     {
-        Log_Write("Configurator: ERROR. Config file doesn't exist!");        
-        Log_Write("Configurator: Trying to create config file %s...", fileName);
+        LOG(LL_ERROR, ("Configurator: ERROR. Config file doesn't exist!"));        
+        LOG(LL_INFO, ("Configurator: Trying to create config file %s...", fileName));
 
         // Создание нового файла конфигурации со значениями по умолчанию
         int createResult = CreateNewConfigFile();
@@ -480,7 +480,7 @@ int Config_Write(Config *config)
         }
     }
 
-    Log_Write("Configurator: Config writing...");
+    LOG(LL_INFO, ("Configurator: Config writing..."));
 
     // Заполнение файла конфигурации
     int fillResult = WriteConfigFile(config);
@@ -489,7 +489,7 @@ int Config_Write(Config *config)
         return result;
     }
 
-    Log_Write("Configurator: Config is written");
+    LOG(LL_INFO, ("Configurator: Config is written"));
     
     result = 0;
     return result;
@@ -502,32 +502,32 @@ void Config_ShowData(Config *config)
     if (config == NULL)
         return;
     
-    Log_Write("Configurator: Config data:");
-    Log_Write("Configurator: log_use_terminal_output = %d", config->log_use_terminal_output);
-    Log_Write("Configurator: log_rows_min_count = %d", config->log_rows_min_count);
-    Log_Write("Configurator: log_rows_max_count = %d", config->log_rows_max_count);
-    Log_Write("Configurator: modules_count = %d", config->modules_count);
+    LOG(LL_INFO, ("Configurator: Config data:"));
+    LOG(LL_INFO, ("Configurator: log_use_terminal_output = %d", config->log_use_terminal_output));
+    LOG(LL_INFO, ("Configurator: log_rows_min_count = %d", config->log_rows_min_count));
+    LOG(LL_INFO, ("Configurator: log_rows_max_count = %d", config->log_rows_max_count));
+    LOG(LL_INFO, ("Configurator: modules_count = %d", config->modules_count));
 
     for (int i = 0; i < config->modules_count; i++)
     {
-        Log_Write("Configurator: Module %d:", i+1);
-        Log_Write("Configurator: inited = %d", config->modules[i].inited);
-        Log_Write("Configurator: code = %d", config->modules[i].code);
-        Log_Write("Configurator: address = %d", config->modules[i].address);
+        LOG(LL_INFO, ("Configurator: Module %d:", i+1));
+        LOG(LL_INFO, ("Configurator: inited = %d", config->modules[i].inited));
+        LOG(LL_INFO, ("Configurator: code = %d", config->modules[i].code));
+        LOG(LL_INFO, ("Configurator: address = %d", config->modules[i].address));
 
         if (config->modules[i].uniqueName != NULL)
-            Log_Write("Configurator: uniqueName = %s", config->modules[i].uniqueName);
+            LOG(LL_INFO, ("Configurator: uniqueName = %s", config->modules[i].uniqueName));
         else
-            Log_Write("Configurator: uniqueName = NULL");
+            LOG(LL_INFO, ("Configurator: uniqueName = NULL"));
 
         if (config->modules[i].name != NULL)
-            Log_Write("Configurator: name = %s", config->modules[i].name);
+            LOG(LL_INFO, ("Configurator: name = %s", config->modules[i].name));
         else
-            Log_Write("Configurator: name = NULL");
+            LOG(LL_INFO, ("Configurator: name = NULL"));
 
         if (config->modules[i].description != NULL)
-            Log_Write("Configurator: description = %s", config->modules[i].description);
+            LOG(LL_INFO, ("Configurator: description = %s", config->modules[i].description));
         else
-            Log_Write("Configurator: description = NULL");
+            LOG(LL_INFO, ("Configurator: description = NULL"));
     }
 }

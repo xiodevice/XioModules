@@ -20,7 +20,7 @@ Module* MDI8Module_Create(Module_Config *config, I2C_Connection *connection, MDI
     Module* module = (Module*)calloc(1, sizeof(Module));
     if (module == NULL)
     {
-        Log_Write("MDI8Module: ERROR. Failed to allocate memory for module MDI8!");
+        LOG(LL_ERROR, ("MDI8Module: ERROR. Failed to allocate memory for module MDI8!"));
         return module;
     }
 
@@ -46,7 +46,7 @@ Module* MDI8Module_Create(Module_Config *config, I2C_Connection *connection, MDI
         }
         default:
         {
-            Log_Write("MDI8Module: ERROR. Unknown chip (%d) for module (%s)!", chipName, config->name);
+            LOG(LL_ERROR, ("MDI8Module: ERROR. Unknown chip (%d) for module (%s)!", chipName, config->name));
             break;
         }
     }
@@ -63,7 +63,7 @@ Module* MDI8Module_Create(Module_Config *config, I2C_Connection *connection, MDI
     module->inputs = (Module_Pin*)calloc(module->inputsCount, sizeof(Module_Pin));
     if (module->inputs == NULL)
     {
-        Log_Write("MDI8Module: ERROR. Failed to allocate memory for inputs!");
+        LOG(LL_ERROR, ("MDI8Module: ERROR. Failed to allocate memory for inputs!"));
         free(module->chip);
         module->chip = NULL;
         free(module);

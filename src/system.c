@@ -44,19 +44,19 @@ static I2C_Connection *connection;      // Подключение I2C
 
 static Config config;
 static Module **modules;                // Модули ввода-вывода (указатель на массив указателей)
-static int modulesCount;                // Количество модулей (в работе)
+static int modulesCount;                // Количество модулей (в работе) 
 
-static pthread_t threadIndication;      // Поток индикации
+static pthread_t threadIndication;      // Поток индикации для завершения потока индикаци
 static pthread_t threadModules;         // Поток для опроса модулей
 static pthread_t threadMqtt;            // Поток для обмена данными с MQTT
 
-static int indicationThreadToRun = 1;   // Флаг для завершения потока индикации
+static int indicationThreadToRun = 1;   // Флаги
 static int modulesThreadToRun = 1;      // Флаг для завершения потока опроса модулей
 static int mqttThreadToRun = 1;         // Флаг для завершения потока обмена данными с MQTT
 
 static const int delayIndicationThreadUsec = 1000;    // Задержка в потоке индикации (в микросекундах)
-static const int delayModulesThreadUsec = 1000;       // Задержка в потоке опроса модулей (в микросекундах)
-static const int delayMqttThreadUsec = 1000;          // Задержка в потоке обмена данными с MQTT (в микросекундах)
+static const int delayModulesThreadUsec = 100;       // Задержка в потоке опроса модулей (в микросекундах)
+static const int delayMqttThreadUsec = 100;          // Задержка в потоке обмена данными с MQTT (в микросекундах)
 
 
 /// @brief MOD: Получить наименование платы
@@ -65,10 +65,10 @@ static const int delayMqttThreadUsec = 1000;          // Задержка в п�
 static SYSTEM_BOARD_ENUM System_GetBoard()
 {
     SYSTEM_BOARD_ENUM result = SYSTEM_BOARD_UNKNOWN;
-    Log_Write("System: Getting board name...");
+    LOG(LL_INFO, ("System: Getting board name..."));
 
 #ifndef __linux__
-    Log_Write("System: WARNING. Faild to get board name on Windows platform");
+    LOG(LL_WARN, ("System: WARNING. Faild to get board name on Windows platform"));
     return result;
 #endif
 
@@ -77,12 +77,12 @@ static SYSTEM_BOARD_ENUM System_GetBoard()
     fp = fopen(GET_BOARD_NAME_PATH, "r");
     if (fp == NULL) 
     {
-        Log_Write("System: WARNING. Failed to open %s", GET_BOARD_NAME_PATH);
+        LOG(LL_WARN, ("System: WARNING. Failed to open %s", GET_BOARD_NAME_PATH));
 
         fp = fopen(GET_BOARD_NAME_PATH_ALT, "r");
         if (fp == NULL) 
         {
-            Log_Write("System: WARNING. Failed to open %s", GET_BOARD_NAME_PATH_ALT);
+            LOG(LL_WARN, ("System: WARNING. Failed to open %s", GET_BOARD_NAME_PATH_ALT));
             return result;
         }
     }
@@ -109,7 +109,7 @@ static SYSTEM_BOARD_ENUM System_GetBoard()
         }
     }
 
-    Log_Write("System: Board name - %s (boardcode = %d)", buf, board);
+    LOG(LL_INFO, ("System: Board name - %s (boardcode = %d)", buf, board));
     fclose(fp);
 
     return result;
@@ -123,7 +123,7 @@ static SYSTEM_BOARD_ENUM System_GetBoard()
 static int System_InitSystemData()
 {
     int result = -1;
-    Log_Write("System: Initializing system data...");
+    LOG(LL_INFO, ("System: Initializing system data..."));
     // Логи
     Log_EnableTerminalOutput(config.log_use_terminal_output);
     Log_UseRowsCleaning(config.log_rows_min_count, config.log_rows_max_count);
@@ -138,7 +138,7 @@ static int System_InitSystemData()
     board = SYSTEM_BOARD_UNKNOWN;
 #endif
 
-    Log_Write("System: System data initialized.");
+    LOG(LL_INFO, ("System: System data initialized."));
     result = 0;
     return result;
 }
@@ -149,16 +149,16 @@ static int System_InitSystemData()
 static int System_InitIndication()
 {
     int result = -1;
-    Log_Write("System: Initializing indication...");
+    LOG(LL_INFO, ("System: Initializing indication..."));
 
 #ifdef TEST_MODE
-    Log_Write("System: WARNING. TEST MODE. DO NOT USE IN PRODUCTION.");
+    LOG(LL_WARN, ("System: WARNING. TEST MODE. DO NOT USE IN PRODUCTION."));
     result = 0;
 #endif
 
     // TODO: Инициализация данных индикации
 
-    Log_Write("System: Indication initialized.");
+    LOG(LL_INFO, ("System: Indication initialized."));
     //result = 0;
     return result;
 }
@@ -168,7 +168,7 @@ static int System_InitIndication()
 static int System_InitModules()
 {
     int result = -1;
-    Log_Write("System: Initializing modules...");
+    LOG(LL_INFO, ("System: Initializing modules..."));
 
     modulesCount = 0;
     // TODO: Ready to test
@@ -192,27 +192,27 @@ static int System_InitModules()
     }
 
     // Создать I2C подключение    
-    Log_Write("System: Creating I2C connection...");
+    LOG(LL_INFO, ("System: Creating I2C connection..."));
     connection = I2C_CreateConnection(&connectionConfig);
 
 #ifndef __linux__ 
     // TEMP: Создание эмуляции подключения для пропуска ошибки на Windows
     connection = calloc(1, sizeof(I2C_Connection));
-    Log_Write("System: WARNING. TEST MODE. DO NOT USE IN PRODUCTION. I2C connection created.");
+    LOG(LL_WARN, ("System: WARNING. TEST MODE. DO NOT USE IN PRODUCTION. I2C connection created."));
 #endif
 
     if (connection == NULL)
     {
-        Log_Write("System: ERROR. Failed to create I2C connection!");
+        LOG(LL_ERROR, ("System: ERROR. Failed to create I2C connection!"));
         return result;
     }
-    Log_Write("System: I2C connection created!");
+    LOG(LL_INFO, ("System: I2C connection created!"));
 
     // Выделить память под указатели на модули
     modules = (Module**)calloc(modulesCount, sizeof(Module*));
     if (modules == NULL)
     {
-        Log_Write("System: ERROR. Failed to allocate memory for modules list !");
+        LOG(LL_ERROR, ("System: ERROR. Failed to allocate memory for modules list !"));
         free(connection);
         connection = NULL;
         return result;
@@ -243,7 +243,7 @@ static int System_InitModules()
         }
     }
 
-    Log_Write("System: Modules initialized.");
+    LOG(LL_INFO, ("System: Modules initialized."));
     result = 0;
     return result;
 }
@@ -253,16 +253,16 @@ static int System_InitModules()
 static int System_InitMqtt()
 {
     int result = -1;
-    Log_Write("System: Initializing MQTT...");
+    LOG(LL_INFO, ("System: Initializing MQTT..."));
 
     // TODO: Инициализация данных Mqtt
 
 #ifdef TEST_MODE
-    Log_Write("System: WARNING. TEST MODE. DO NOT USE IN PRODUCTION.");
+    LOG(LL_WARN, ("System: WARNING. TEST MODE. DO NOT USE IN PRODUCTION."));
     result = 0;
 #endif
 
-    Log_Write("System: MQTT initialized.");
+    LOG(LL_INFO, ("System: MQTT initialized."));
     //result = 0;
     return result;
 }
@@ -291,6 +291,7 @@ static void* System_Indication_ThreadHandler(void *args)
 static void* System_ModulesPolling_ThreadHandler(void *args)
 {
     // TODO: Обработчик потока опроса модулей
+    //int counter = 0;
     while (modulesThreadToRun)
     {
         for (int i = 0; i < modulesCount; i++)
@@ -299,11 +300,13 @@ static void* System_ModulesPolling_ThreadHandler(void *args)
             Module_ReadPins(modules[i]);
 
             // Запись всех выводов модуля
-            Module_WritePins(modules[i]);
-
-            // Засыпаем
-            usleep(delayModulesThreadUsec);
-        }        
+            Module_WritePins(modules[i]);            
+        }
+        // Засыпаем
+        usleep(delayModulesThreadUsec);
+        // Test
+        //counter++;
+        //Log_Write("System: Modules polling itiration %d...", counter);
     }
 
     return EXIT_SUCCESS;
@@ -335,14 +338,14 @@ int System_Init()
     // TODO: Инициализация индикации
     // Indication_Init();
 
-    Log_Write("System: Initializing...");
+    LOG(LL_INFO, ("System: Initializing..."));
     
     // Инициализация конфигурации
     int configInitResult = Config_Init(NULL);
 
     if (configInitResult != 0)
     {
-        Log_Write("System: ERROR. Failed to init configuration!");
+        LOG(LL_ERROR, ("System: ERROR. Failed to init configuration!"));
         return result;
     }
 
@@ -350,38 +353,38 @@ int System_Init()
     int configReadResult = Config_Read(&config);
     if (configReadResult != 0)
     {
-        Log_Write("System: ERROR. Failed to read configuration!");
+        LOG(LL_ERROR, ("System: ERROR. Failed to read configuration!"));
         return result;
     }
     else
     {
-        Log_Write("System: Configuration successfully read");
+        LOG(LL_INFO, ("System: Configuration successfully read"));
 
         if (config.modules_count > 0)
         {
-            Log_Write("System: There are %d modules in configuration:", config.modules_count);
+            LOG(LL_INFO, ("System: There are %d modules in configuration:", config.modules_count));
             for (int i = 0; i < config.modules_count; i++)
             {
                 if (config.modules[i].inited)
                 {
-                    Log_Write("System: Module %s inited", config.modules[i].name);
+                    LOG(LL_INFO, ("System: Module %s inited", config.modules[i].name));
                 }
                 else
                 {
                     if (config.modules[i].name != NULL)
                     {
-                        Log_Write("System: WARNING. Module %s (index %d) is NOT inited! It will not be used", config.modules[i].name, i);
+                        LOG(LL_WARN, ("System: WARNING. Module %s (index %d) is NOT inited! It will not be used", config.modules[i].name, i));
                     }
                     else
                     {
-                        Log_Write("System: WARNING. Module (index %d) is NOT inited! It will not be used", i);
+                        LOG(LL_WARN, ("System: WARNING. Module (index %d) is NOT inited! It will not be used", i));
                     }
                 }
             }            
         }
         else
         {
-            Log_Write("System: ERROR. There are no modules in configuration! Service will be stoped");
+            LOG(LL_ERROR, ("System: ERROR. There are no modules in configuration! Service will be stoped"));
             return result;
         }
         
@@ -394,7 +397,7 @@ int System_Init()
     int res = System_InitSystemData();
     if (res < 0)
     {
-        Log_Write("System: ERROR. Failed to init system data!");
+        LOG(LL_ERROR, ("System: ERROR. Failed to init system data!"));
         return result;
     }
 
@@ -402,7 +405,7 @@ int System_Init()
     res = System_InitIndication();
     if (res < 0)
     {
-        Log_Write("System: ERROR. Failed to init indication!");
+        LOG(LL_ERROR, ("System: ERROR. Failed to init indication!"));
         return result;
     }
 
@@ -410,7 +413,7 @@ int System_Init()
     res = System_InitModules();
     if (res < 0)
     {
-        Log_Write("System: ERROR. Failed to init modules!");
+        LOG(LL_ERROR, ("System: ERROR. Failed to init modules!"));
         return result;
     }
 
@@ -418,11 +421,11 @@ int System_Init()
     res = System_InitMqtt();
     if (res < 0)
     {
-        Log_Write("System: ERROR. Failed to init MQTT!");
+        LOG(LL_ERROR, ("System: ERROR. Failed to init MQTT!"));
         return result;
     }
     
-    Log_Write("System: Initialized");
+    LOG(LL_INFO, ("System: Initialized"));
     result = 0;
     return result;
 }
@@ -432,45 +435,45 @@ int System_Start()
     int result = -1;
 
     // TODO: Запуск системы
-    Log_Write("System: Starting...");
+    LOG(LL_INFO, ("System: Starting..."));
 
-    Log_Write("System: Starting indication thread");
+    LOG(LL_INFO, ("System: Starting indication thread"));
     // Создание потока индикации
     int res1 = pthread_create(&threadIndication, NULL, System_Indication_ThreadHandler, NULL);
     if (res1 != 0)
     {
-        Log_Write("System: ERROR. Failed to start indication (Thread_Indication). Error code: %d", res1);
+        LOG(LL_ERROR, ("System: ERROR. Failed to start indication (Thread_Indication). Error code: %d", res1));
         return result;
     }
-    Log_Write("System: Indication thread started");
+    LOG(LL_INFO, ("System: Indication thread started"));
 
-    Log_Write("System: Starting modules polling thread");
+    LOG(LL_INFO, ("System: Starting modules polling thread"));
     // Создание потока опроса модулей
     int res2 = pthread_create(&threadModules, NULL, System_ModulesPolling_ThreadHandler, NULL);
     if (res2 != 0)
     {
-        Log_Write("System: ERROR. Failed to start polling thread (Thread_Modules). Error code: %d", res2);
+        LOG(LL_ERROR, ("System: ERROR. Failed to start polling thread (Thread_Modules). Error code: %d", res2));
         return result;
     }
-    Log_Write("System: Modules polling thread started");
+    LOG(LL_INFO, ("System: Modules polling thread started"));
 
-    Log_Write("System: Starting MQTT data exchange thread");
+    LOG(LL_INFO, ("System: Starting MQTT data exchange thread"));
     // Создание потока обмена данными с Mqtt
     int res3 = pthread_create(&threadMqtt, NULL, System_MqttDataExchange_ThreadHandler, NULL);
     if (res3 != 0)
     {
-        Log_Write("System: ERROR. Failed to start MQTT data exchange thread (Thread_MQTT). Error code: %d", res3);
+        LOG(LL_ERROR, ("System: ERROR. Failed to start MQTT data exchange thread (Thread_MQTT). Error code: %d", res3));
         return result;
     }
-    Log_Write("System: MQTT data exchange thread started");
+    LOG(LL_INFO, ("System: MQTT data exchange thread started"));
 
-    Log_Write("System: Started");
+    LOG(LL_INFO, ("System: Started"));
 
     // Ожидание завершения потока индикации
     res1 = pthread_join(threadIndication, NULL);
     if (res1 != 0)
     {
-        Log_Write("System: ERROR. Failed to join Thread_Indication with result %d", res1);
+        LOG(LL_ERROR, ("System: ERROR. Failed to join Thread_Indication with result %d", res1));
         return result;
     }
 
@@ -478,7 +481,7 @@ int System_Start()
     res2 = pthread_join(threadModules, NULL);
     if (res2 != 0)
     {
-        Log_Write("System: ERROR. Failed to join Thread_Modules with result %d", res2);
+        LOG(LL_ERROR, ("System: ERROR. Failed to join Thread_Modules with result %d", res2));
         return result;
     }
 
@@ -486,7 +489,7 @@ int System_Start()
     res3 = pthread_join(threadMqtt, NULL);
     if (res3 != 0)
     {
-        Log_Write("System: ERROR. Failed to join Thread_MQTT with result %d", res3);
+        LOG(LL_ERROR, ("System: ERROR. Failed to join Thread_MQTT with result %d", res3));
         return result;
     }
     
@@ -499,7 +502,7 @@ int System_Stop()
     int result = -1;
 
     // TODO: Остановка системы
-    Log_Write("System: Stopping...");
+    LOG(LL_INFO, ("System: Stopping..."));
 
     // Завершение потоков
     indicationThreadToRun = 0;
@@ -509,7 +512,7 @@ int System_Stop()
     // Отсоединение от шины I2C
     I2C_DestroyConnection(connection);
 
-    Log_Write("System: Stopped");
+    LOG(LL_INFO, ("System: Stopped"));
 
     result = 0;
     return result;

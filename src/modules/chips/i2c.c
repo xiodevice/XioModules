@@ -49,7 +49,7 @@ static int I2C_Read(I2C_Connection *connection, uint16_t address, uint16_t regAd
     int res = ioctl(connection->fd, I2C_SLAVE, address);
     if (res < 0) 
     {
-        Log_Write("I2C: ERROR. Failed to acquire bus access and/or find the slave %d (0x%02x)!", address, address);
+        LOG(LL_ERROR, ("I2C: ERROR. Failed to acquire bus access and/or find the slave %d (0x%02x)!", address, address));
         return result;
     }
 
@@ -57,8 +57,8 @@ static int I2C_Read(I2C_Connection *connection, uint16_t address, uint16_t regAd
     res = write(connection->fd, &regAddress, 1);
     if (res != regsCount)
     {
-        Log_Write("I2C: ERROR. Faild to use start register 0x%02x (count = %d) for slave %d (0x%02x)!", 
-            regAddress, regsCount, address, address);
+        LOG(LL_ERROR, ("I2C: ERROR. Faild to use start register 0x%02x (count = %d) for slave %d (0x%02x)!", 
+            regAddress, regsCount, address, address));
         return result;
     }
 
@@ -66,12 +66,12 @@ static int I2C_Read(I2C_Connection *connection, uint16_t address, uint16_t regAd
     res = read(connection->fd, &result, regsCount);
     if (res != regsCount)
     {
-        Log_Write("I2C: ERROR. The slave %d (0x%02x) is not responding!", address, address);
+        LOG(LL_ERROR, ("I2C: ERROR. The slave %d (0x%02x) is not responding!", address, address));
         result = -1;
         return result;
     }
 #else
-    Log_Write("I2C: ERROR. Reading data from I2C is not supported on this platform!");
+    LOG(LL_ERROR, ("I2C: ERROR. Reading data from I2C is not supported on this platform!"));
     return result;
 #endif
 
@@ -103,7 +103,7 @@ static bool I2C_Write(I2C_Connection *connection, uint16_t address, uint16_t reg
     int res = ioctl(connection->fd, I2C_SLAVE, address);
     if (res < 0) 
     {
-        Log_Write("I2C: ERROR. Failed to acquire bus access and/or find the slave %d (0x%02x)!", address, address);
+        LOG(LL_ERROR, ("I2C: ERROR. Failed to acquire bus access and/or find the slave %d (0x%02x)!", address, address));
         return result;
     }
 
@@ -111,12 +111,12 @@ static bool I2C_Write(I2C_Connection *connection, uint16_t address, uint16_t reg
     res = write(connection->fd, buffer, len + 1);
     if (res != len)
     {
-        Log_Write("I2C: ERROR. Faild to use start register 0x%02x (count = %d) for slave %d (0x%02x)!", 
-            regAddress, len, address, address);
+        LOG(LL_ERROR, ("I2C: ERROR. Faild to use start register 0x%02x (count = %d) for slave %d (0x%02x)!", 
+            regAddress, len, address, address));
         return result;
     }
 #else
-    Log_Write("I2C: ERROR. Writing data to I2C is not supported on this platform!");
+    LOG(LL_ERROR, ("I2C: ERROR. Writing data to I2C is not supported on this platform!"));
     return result;
 #endif
 
@@ -139,7 +139,7 @@ I2C_Connection* I2C_CreateConnection(I2C_Config *config)
 
     if (connection == NULL)
     {
-        Log_Write("I2C: ERROR. Failed to allocate memory for I2C connection instance!");
+        LOG(LL_ERROR, ("I2C: ERROR. Failed to allocate memory for I2C connection instance!"));
         return connection;
     }
 
@@ -149,7 +149,7 @@ I2C_Connection* I2C_CreateConnection(I2C_Config *config)
     connection->fd = open(I2C_LINUX_DEVICES[config->busNumber], O_RDWR);
     if (connection->fd < 0)
     {
-        Log_Write("I2C: ERROR. Failed to open I2C bus! It may be missing, unavailable or busy!");
+        LOG(LL_ERROR, ("I2C: ERROR. Failed to open I2C bus! It may be missing, unavailable or busy!"));
         I2C_DestroyConnection(connection);
         return connection;
     }   
@@ -158,7 +158,7 @@ I2C_Connection* I2C_CreateConnection(I2C_Config *config)
     bool res = I2C_SetFrequency(connection, config->frequencyHz);
     if (res == false)
     {
-        Log_Write("I2C: WARNING. Failed to set new frequency (%d Hz) of I2C!", config->frequencyHz);
+        LOG(LL_WARN, ("I2C: WARNING. Failed to set new frequency (%d Hz) of I2C!", config->frequencyHz));
         //I2C_DestroyConnection(connection);
         //return connection;
     }
@@ -167,14 +167,14 @@ I2C_Connection* I2C_CreateConnection(I2C_Config *config)
     res = I2C_SetReadTimeout(connection, config->readTimeoutMs);
     if (res == false)
     {
-        Log_Write("I2C: WARNING. Failed to set new read timeout (%d ms) of I2C!", config->readTimeoutMs);
+        LOG(LL_WARN, ("I2C: WARNING. Failed to set new read timeout (%d ms) of I2C!", config->readTimeoutMs));
         //I2C_DestroyConnection(connection);
         //return connection;
     }
 
     connection->opened = true;    
 #else
-    Log_Write("I2C: WARNING. Creating an I2C connection is not supported on this platform!");
+    LOG(LL_WARN, ("I2C: WARNING. Creating an I2C connection is not supported on this platform!"));
     return connection;
 #endif
 
@@ -215,7 +215,7 @@ bool I2C_CheckConnectionAddress(I2C_Connection *connection, uint16_t address)
     int res = ioctl(connection->fd, I2C_SLAVE, address);
     if (res < 0) 
     {
-        Log_Write("I2C: ERROR. Failed to acquire bus access and/or find the slave %d (0x%02x)!", address, address);
+        LOG(LL_ERROR, ("I2C: ERROR. Failed to acquire bus access and/or find the slave %d (0x%02x)!", address, address));
         return result;
     }
 
@@ -224,12 +224,12 @@ bool I2C_CheckConnectionAddress(I2C_Connection *connection, uint16_t address)
     res = read(connection->fd, &buffer, 1);
     if (res != 1)
     {
-        Log_Write("I2C: ERROR. The slave %d (0x%02x) is not responding!", address, address);
+        LOG(LL_ERROR, ("I2C: ERROR. The slave %d (0x%02x) is not responding!", address, address));
         return result;
     }
 
 #else
-    Log_Write("I2C: ERROR. Checking an I2C connection is not supported on this platform!");
+    LOG(LL_ERROR, ("I2C: ERROR. Checking an I2C connection is not supported on this platform!"));
     return result;
 #endif
 
@@ -257,11 +257,11 @@ bool I2C_SetFrequency(I2C_Connection *connection, int frequencyHz)
     int res = ioctl(connection->fd, I2C_FREQ, i2cFrequencyCode);
     if (res < 0)
     {
-        Log_Write("I2C: ERROR. Failed to set I2C frequency to %d Hz!", frequencyHz);
+        LOG(LL_ERROR, ("I2C: ERROR. Failed to set I2C frequency to %d Hz!", frequencyHz));
     }*/
-    Log_Write("I2C: ERROR. Setting I2C bus frequency is not supported from code!");
+    LOG(LL_ERROR, ("I2C: ERROR. Setting I2C bus frequency is not supported from code!"));
 #else
-    Log_Write("I2C: ERROR. Setting I2C bus frequency is not supported on this platform!");
+    LOG(LL_ERROR, ("I2C: ERROR. Setting I2C bus frequency is not supported on this platform!"));
     return result;
 #endif
 
@@ -286,10 +286,10 @@ bool I2C_SetReadTimeout(I2C_Connection *connection, int readTimeoutMs)
     int res = ioctl(connection->fd, I2C_TIMEOUT, readTimeoutMs);
     if (res < 0)
     {
-        Log_Write("I2C: ERROR. Failed to set I2C read timeout to %d ms!", readTimeoutMs);
+        LOG(LL_ERROR, ("I2C: ERROR. Failed to set I2C read timeout to %d ms!", readTimeoutMs));
     }
 #else
-    Log_Write("I2C: ERROR. Setting I2C bus read timeout is not supported on this platform!");
+    LOG(LL_ERROR, ("I2C: ERROR. Setting I2C bus read timeout is not supported on this platform!"));
     return result;
 #endif
 

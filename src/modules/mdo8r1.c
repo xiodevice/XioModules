@@ -20,7 +20,7 @@ Module* MDO8R1Module_Create(Module_Config *config, I2C_Connection *connection, M
     Module* module = (Module*)calloc(1, sizeof(Module));
     if (module == NULL)
     {
-        Log_Write("MDO8R1Module: ERROR. Failed to allocate memory for module MDO8R1!");
+        LOG(LL_ERROR, ("MDO8R1Module: ERROR. Failed to allocate memory for module MDO8R1!"));
         return module;
     }
 
@@ -46,7 +46,7 @@ Module* MDO8R1Module_Create(Module_Config *config, I2C_Connection *connection, M
         }
         default:
         {
-            Log_Write("MDO8R1Module: ERROR. Unknown chip (%d) for module (%s)!", chipName, config->name);
+            LOG(LL_ERROR, ("MDO8R1Module: ERROR. Unknown chip (%d) for module (%s)!", chipName, config->name));
             break;
         }
     }
@@ -63,7 +63,7 @@ Module* MDO8R1Module_Create(Module_Config *config, I2C_Connection *connection, M
     module->outputs = (Module_Pin*)calloc(module->outputsCount, sizeof(Module_Pin));
     if (module->inputs == NULL)
     {
-        Log_Write("MDO8R1Module: ERROR. Failed to allocate memory for outputs!");
+        LOG(LL_ERROR, ("MDO8R1Module: ERROR. Failed to allocate memory for outputs!"));
         free(module->chip);
         module->chip = NULL;
         free(module);
