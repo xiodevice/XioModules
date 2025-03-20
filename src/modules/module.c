@@ -7,7 +7,7 @@
 
 
 
-// ***** Предоставляемые интерфейсы module_io.h (реализация)*****
+// ***** Предоставляемые интерфейсы module.h (реализация)*****
 
 Module* Module_Create(Module_Config *config, I2C_Connection *connection)
 {    
