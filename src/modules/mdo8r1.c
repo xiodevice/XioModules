@@ -46,7 +46,7 @@ Module* MDO8R1Module_Create(Module_Config *config, I2C_Connection *connection, M
         }
         default:
         {
-            LOG(LL_ERROR, ("MDO8R1Module: ERROR. Unknown chip (%d) for module (%s)!", chipName, config->name));
+            LOG(LL_ERROR, ("MDO8R1Module: ERROR. Unknown chip (%d) for module %s (%s)!", chipName, config->uniqueName, config->name));
             break;
         }
     }

@@ -1,6 +1,6 @@
 /*
 Опросчик модулей ввода-вывода.
-Содержит в себе основную логику и связь компонентов системы
+Содержит в себе логику опроса модулей ввода-вывода.
 */
 
 #ifndef POOLER_H
@@ -20,12 +20,6 @@ typedef enum
     POOLER_STATE_WRITING,   // Запись
     POOLER_STATE_ERROR      // Ошибка
 } POOLER_STATE_ENUM;
-
-/// @brief Проинициализировать опросчик
-/// @param modules Модули ввода-вывода
-/// @param modulesCount Количество модулей
-/// @return Результат (0 - успех, отрицательное число - ошибка)
-int Pooler_Init(Module *modules, int modulesCount);
 
 /// @brief Получить состояние опросчика
 /// @return Состояние опросчика

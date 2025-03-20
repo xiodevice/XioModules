@@ -1,0 +1,72 @@
+#include "pooler.h"
+#include "../log.h"
+
+static POOLER_STATE_ENUM state = POOLER_STATE_NONE;
+
+
+// ***** Предоставляемые интерфейсы module.h (реализация)*****
+
+
+bool Pooler_ReadModule(Module *module)
+{
+    bool result = false;
+    
+    if (module == NULL)
+        return result;
+    
+    LOG(LL_DEBUG, ("Pooler: Reading module %s (%s) data...", module->uniqueName, module->name));
+    // TODO: Чтение данных модуля
+
+    
+    //result = true;
+    return result;
+}
+
+bool Pooler_WriteModule(Module *module)
+{
+    bool result = false;
+
+    if (module == NULL)
+        return result;
+
+    LOG(LL_DEBUG, ("Pooler: Writing module %s (%s) data...", module->uniqueName, module->name));
+    // TODO: Запись данных модуля
+
+    //result = true;
+    return result;
+}
+
+bool Pooler_UpdateModules(Module **modules, int modulesCount)
+{
+    bool result = false;
+
+    if (modules == NULL)
+        return result;
+
+    LOG(LL_DEBUG, ("Pooler: Updating modules..."));
+    // TODO: Опросить модули
+    for (int i = 0; i < modulesCount; i++)
+    {
+        Module *module = modules[i];
+        LOG(LL_DEBUG, ("Pooler: Writing module %s (%s) data...", module->uniqueName, module->name));
+        bool res = Pooler_ReadModule(modules[i]);
+        if (!res)
+        {
+            LOG(LL_DEBUG, ("Pooler: ERROR. Failed to read module %s (%s) data!", module->uniqueName, module->name));
+        }
+
+        LOG(LL_DEBUG, ("Pooler: Writing module %s (%s) data...", module->uniqueName, module->name));
+        res = Pooler_WriteModule(modules[i]);
+        if (!res)
+        {
+            LOG(LL_DEBUG, ("Pooler: ERROR. Failed to write module %s (%s) data!", module->uniqueName, module->name));
+        }        
+    }
+
+    return result;
+}
+
+POOLER_STATE_ENUM Pooler_GetState()
+{
+    return state;
+}

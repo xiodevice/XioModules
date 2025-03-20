@@ -18,7 +18,7 @@
 static I2C_Config connectionConfig = 
 {
     .busNumber = 0,
-    .frequencyHz = 100000,
+    .frequencyHz = 400000,
     .readTimeoutMs = 100
 };
 
@@ -143,7 +143,6 @@ static int System_InitSystemData()
     return result;
 }
 
-
 /// @brief Инициализировать индикацию
 /// @return Результат (0 - успех, отрицательное число - ошибка)
 static int System_InitIndication()
@@ -206,13 +205,13 @@ static int System_InitModules()
         LOG(LL_ERROR, ("System: ERROR. Failed to create I2C connection!"));
         return result;
     }
-    LOG(LL_INFO, ("System: I2C connection created!"));
+    LOG(LL_INFO, ("System: I2C connection created"));
 
     // Выделить память под указатели на модули
     modules = (Module**)calloc(modulesCount, sizeof(Module*));
     if (modules == NULL)
     {
-        LOG(LL_ERROR, ("System: ERROR. Failed to allocate memory for modules list !"));
+        LOG(LL_ERROR, ("System: ERROR. Failed to allocate memory for modules list!"));
         free(connection);
         connection = NULL;
         return result;
@@ -290,8 +289,7 @@ static void* System_Indication_ThreadHandler(void *args)
 /// @return Результат
 static void* System_ModulesPolling_ThreadHandler(void *args)
 {
-    // TODO: Обработчик потока опроса модулей
-    //int counter = 0;
+    // TODO: Ready to test
     while (modulesThreadToRun)
     {
         for (int i = 0; i < modulesCount; i++)
@@ -300,13 +298,10 @@ static void* System_ModulesPolling_ThreadHandler(void *args)
             Module_ReadPins(modules[i]);
 
             // Запись всех выводов модуля
-            Module_WritePins(modules[i]);            
+            Module_WritePins(modules[i]);
         }
         // Засыпаем
         usleep(delayModulesThreadUsec);
-        // Test
-        //counter++;
-        //Log_Write("System: Modules polling itiration %d...", counter);
     }
 
     return EXIT_SUCCESS;
